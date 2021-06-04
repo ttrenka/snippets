@@ -1,0 +1,94 @@
+<job>
+<script language="jscript" src="../../core/config.js" />
+<script language="jscript" src="../../core/core.js" />
+<script language="jscript">
+/***********************************************************************
+ *	Marchex Alerts Daily Digest emails
+ *
+ *	TRT 20161213
+ *	v.1.0.0
+ *
+ *	PURPOSE:
+ *
+ *	Comb through yesterday's alerts log, and assemble and email for any
+ *	person who requested a listing of certain campaigns/programs.
+ ***********************************************************************/
+var c = Core, console = new c.log(config.logPath + "Marchex\\MarchexAlertsDailyDigest");
+c.enableLogging = true;
+
+
+//	FOR DAILY PULLS
+var t = new Date();
+t.setDate(t.getDate() - 1);
+var y = t.getFullYear(), m = "00" + (t.getMonth()+1), d = "00" + t.getDate();
+var dt = y + "-" + m.slice(-2) + "-" + d.slice(-2);
+
+if(WScript.Arguments.length > 0){
+	//	we had a date passed in YYMMDD format, so redo the start and end.
+	var tmp = WScript.Arguments(0);
+	dt = "20" + tmp.slice(0, 2) + "-" + tmp.slice(2, 4) + "-" + tmp.slice(-2);
+}
+
+console.log("Alert digest being fetched for " + dt);
+
+//	get the alerts in "raw" (hierarchical) JSON form.
+function getDigest(){
+	var severity = 2;	//	Set the min severity level:
+						//		1: Minor
+						//		2: Intermediate
+						//		3: Major
+						//		4: Severe
+	var params = {
+		date: dt,
+		severity: severity
+	};
+	var sql = "SELECT severity, severity_type, campaign_id, campaign_name, alert_hour, "
+		+ "phone, phone_label, value, range_min, range_max "
+		+ "FROM alertsPhone "
+		+ "WHERE alert_date = :date "
+		+ "AND severity >= :severity "
+		+ "ORDER BY severity DESC, campaign_id, phone, alert_hour";
+	var rs = c.fetch(sql, params, config.connection);
+
+	//	assemble our raw data, to be transposed for templates later.
+	var data = {}, current;
+	for(var i=0, l=rs.items.length; i<l; i++){
+		var item = rs.items[i],
+			type = item.severity_type;
+		if(!(type in data)){
+			data[type] = { };
+			current = data[type];
+		}
+		if(!(item.campaign_id in current)){
+			current[item.campaign_id] = {
+				campaign_id: item.campaign_id,
+				campaign_name: item.campaign_name,
+				phone: {}
+			};
+		}
+		if(!(item.phone in current[item.campaign_id].phone)){
+			var phone = current[item.campaign_id].phone;
+			phone[item.phone] = { };
+		}
+		current[item.campaign_id].phone[item.phone][item.alert_hour] = {
+	//			hour: item.alert_hour,
+				label: item.phone_label,
+				value: item.value,
+				min: item.range_min,
+				max: item.range_max
+		};
+	}
+
+	c.print(c.json.serialize(data, "\t"));
+	console.log(c.json.serialize(data, "\t"));
+	return data;
+}
+
+//	testing
+var d = getDigest();
+
+
+//	write the log if enabled.
+console.flush();
+</script>
+</job>

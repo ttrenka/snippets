@@ -1,0 +1,148 @@
+<job>
+<script language="jscript" src="../../core/config.js" />
+<script language="jscript" src="../../core/core.js" />
+<script language="jscript" src="../../renderer/CsvRenderer.js" />
+<script language="jscript">
+/***********************************************************************
+ *	Marchex Call Log Fetch
+ *
+ *	TRT 20161007
+ *	v.1.0.0
+ *
+ *	PURPOSE:
+ *
+ *	Get yesterday's phone call log (just like we do manually with the
+ *	morning imports).
+ ***********************************************************************/
+var c = Core, console = new c.log(config.logPath + "Marchex\\MarchexCallLogFetch");
+
+//	FOR DAILY PULLS
+var t = new Date();
+t.setDate(t.getDate() - 1);
+var y = t.getFullYear(), m = "00" + (t.getMonth()+1), d = "00" + t.getDate();
+var dt = y + "-" + m.slice(-2) + "-" + d.slice(-2);
+
+if(WScript.Arguments.length > 0){
+	//	we had a date passed in YYMMDD format, so redo the start and end.
+	var tmp = WScript.Arguments(0);
+	dt = "20" + tmp.slice(0, 2) + "-" + tmp.slice(2, 4) + "-" + tmp.slice(-2);
+}
+var start = dt + "T00:00:00Z",
+//	end = dt + "T00:02:59Z";	//	testing, just get an hour's worth
+	end = dt + "T23:59:59Z";
+
+c.print("The date being fetched is " + start + " to " + end);
+var filedate = y + m.slice(-2) + d.slice(-2);
+
+var cols = [
+	{ label: "a_name", field: "a_name" },
+	{ label: "acct", field: "acct" },
+	{ label: "agent_ring_count", field: "agent_ring_count" },
+	{ label: "agent_speech_duration", field: "agent_speech_duration" },
+	{ label: "answer_offset", field: "answer_offset" },
+	{ label: "ass_user", field: "ass_user" },
+	{ label: "assigned_to", field: "assigned_to" },
+	{ label: "billable_minutes", field: "billable_minutes" },
+	{ label: "c_name", field: "c_name" },
+	{ label: "call_duration", field: "call_duration" },
+	{ label: "call_end", field: "call_end" },
+	{ label: "call_id", field: "call_id" },
+	{ label: "call_s", field: "call_s" },
+	{ label: "call_start", field: "call_start" },
+	{ label: "call_status", field: "call_status" },
+	{ label: "caller_name", field: "caller_name" },
+	{ label: "caller_number", field: "caller_number" },
+	{ label: "caller_speech_duration", field: "caller_speech_duration" },
+	{ label: "camp_kw", field: "camp_kw" },
+	{ label: "cmp_id", field: "cmpid" },
+	{ label: "disposition", field: "disposition" },
+	{ label: "dna_class", field: "dna_class" },
+	{ label: "duration", field: "duration" },
+	{ label: "forwardno", field: "forwardno" },
+	{ label: "g_name", field: "g_name" },
+	{ label: "grp_id", field: "grpid" },
+	{ label: "inbound_ext", field: "inbound_ext" },
+	{ label: "inboundno", field: "inboundno" },
+	{ label: "keyword", field: "keyword" },
+	{ label: "listenedto", field: "listenedto" },
+	{ label: "note", field: "note" },
+	{ label: "numlookup", field: "numlookup" },
+	{ label: "numlookup_p", field: "numlookup_p" },
+	{ label: "numlookup_name", field: "numlookup_name" },
+	{ label: "numlookup_address", field: "numlookup_address" },
+	{ label: "numlookup_city", field: "numlookup_city" },
+	{ label: "numlookup_state", field: "numlookup_state" },
+	{ label: "numlookup_zip", field: "numlookup_zip" },
+	{ label: "rating", field: "rating" },
+	{ label: "recorded", field: "recorded" },
+	{ label: "redacted", field: "redacted" },
+	{ label: "revenue", field: "revenue" },
+	{ label: "ring_duration", field: "ring_duration" },
+	{ label: "status", field: "status" }
+];
+var tr = new CsvRenderer(cols);
+
+//	set up the content package
+var search = {
+	jsonrpc: "2.0",
+	method: "call.search",
+	params: [
+		config.marchexAccount,
+		{
+			subacct: true,
+			include_dna: true,
+//			exact_times: true,
+			start: start,
+			end: end
+		}
+	],
+	id: 1
+};
+
+var _start = new Date();
+
+//	permissions to access the JSON-RPC API
+var user = config.marchexUser,
+	pwd = config.marchexPwd;
+var args = {
+	url: "https://api.marchex.io/api/jsonrpc/1",
+	data: c.json.serialize(search),
+	headers: {
+		"Content-Type": "application/json"
+	},
+	user: user,
+	password: pwd,
+	load: function(data, http){
+		c.print("Fetch time was " + ((new Date().valueOf() - _start.valueOf()) / 1000) + "s");
+		data = c.json.parse(data);
+		var d = data.result;
+
+		//	Post-process the numlookup field
+		for(var i=0, l=d.length; i<l; i++){
+			var item = d[i];
+			item["numlookup"] = item["numlookup"].replace(/\s+/g, " ");
+			tmp = item["numlookup"].split("===");
+			item["numlookup_name"] = tmp[0] || "";
+			item["numlookup_address"] = tmp[1] || "";
+			item["numlookup_city"] = tmp[2] || "";
+			item["numlookup_state"] = tmp[3] || "";
+			item["numlookup_zip"] = tmp[4] || "";
+
+			//	kill the note field
+			item["note"] = "";
+		}
+
+		var str = tr.render(d);
+
+//		c.write(config.csvPath + "clients_calls_log_" + filedate + ".csv", str);
+		c.write("d:\\ftp\\002_networkImports\\Marchex\\client_calls_log.csv", str);
+		c.print("Run time was " + ((new Date().valueOf() - _start.valueOf()) / 1000) + "s");
+	},
+	"error": function(err, http){
+		c.print(c.json.serialize(err, "\t"));
+	}
+};
+
+c.request("POST", args);
+</script>
+</job>

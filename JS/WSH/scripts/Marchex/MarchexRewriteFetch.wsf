@@ -1,0 +1,205 @@
+<job>
+<script language="jscript" src="../../core/config.js" />
+<script language="jscript" src="../../core/core.js" />
+<script language="jscript" src="../../renderer/TabRenderer.js" />
+<script language="jscript">
+var c = Core, console = new c.log(config.logPath + "Marchex\\MarchexRewriteFetch");
+
+/*
+//	FOR HOURLY PULLS
+//	set the date to the last hour.
+var t = new Date();
+t.setHours((t.getHours() - 1) + config.hourOffset);
+t.setMinutes(0);
+t.setSeconds(0);
+var y = t.getFullYear(), m = "00" + (t.getMonth()+1), d = "00" + t.getDate(), h = "00" + t.getHours();
+var dt = y + "-" + m.slice(-2) + "-" + d.slice(-2);
+var start = dt + "T" + h.slice(-2) + ":00:00Z",
+	end = dt + "T" + h.slice(-2) + ":59:59Z";
+*/
+
+/*
+//	temporary
+start = "2016-09-21T01:00:00Z";
+end = "2016-09-21T01:59:59Z";
+h = "01";
+*/
+
+//	FOR DAILY PULLS
+var t = new Date();
+t.setDate(t.getDate() - 1);
+var y = t.getFullYear(), m = "00" + (t.getMonth()+1), d = "00" + t.getDate();
+var dt = y + "-" + m.slice(-2) + "-" + d.slice(-2);
+var start = dt + "T00:00:00Z",
+	end = dt + "T23:59:59Z";
+var h = "00";
+
+c.print("The hour being fetched is " + start + " - " + end);
+
+var pageTypes = {
+	ashx: "javascript",
+	bmp: "image",
+	css: "stylesheet",
+	flv: "javascript",
+	gif: "image",
+	jpeg: "image",
+	jpg: "image",
+	js: "javascript",
+	jsx: "javascript",
+	htc: "javascript",
+	ico: "favicon",
+	mp3: "audio",
+	png: "image",
+	swf: "flash",
+	xml: "xml"
+};
+
+function fromISODate(s){
+	//	given a string YYYY-MM-DDTHH:mm:ssZ,
+	//	return M/D/YY HH:mm:ss
+	var tmp = s.replace("Z", "").split("T");
+	var dt = tmp[0].split("-"),
+		y = dt[0].slice(2),
+		m = parseInt(dt[1], 10) + "",
+		d = parseInt(dt[2], 10) + "";
+	return m + "/" + d + "/" + y + " " + tmp[1];
+}
+
+function parseUrl(path){
+	//	a port of the PHP parse_url function
+	var p = path, scheme = "http";
+	if(p.indexOf("http") == 0){
+		//	pop the schema off and save it
+		scheme = p.match(/(http(s)?)\:\/\//)[1];
+		p = p.replace(scheme + "://", "");
+	}
+	var tmp = p.split("?"),
+		base = tmp[0],
+		query = tmp[1];
+	//	start with the actual URL
+	tmp = base.split("/");
+	var baseURL = scheme + "://" + tmp.shift();
+	var basePage = "/" + tmp.join("/") + (query ? "?" + query : "");
+	return {
+		URL: baseURL,
+		page: basePage
+	};
+}
+
+function pathInfo(path){
+	//	a port of the PHP pathinfo function
+	var obj = {
+		dirname: "",
+		basename: "",
+		extension: "",
+		filename: ""
+	};
+
+	var tmp = path.split("?")[0].split("/");
+	obj.basename = tmp.pop();
+	obj.dirname = tmp.join("/");
+	if(obj.basename.indexOf(".") == -1){
+		obj.filename = obj.basename;
+	} else {
+		tmp = obj.basename.split(".");
+		obj.extension = tmp.pop();
+		obj.filename = tmp.join(".");
+	}
+	return obj;
+}
+
+function getPageType(path){
+	var ret = "page";
+	var pi = pathInfo(path);
+	if(pi.extension != ""){
+		var ext = pi.extension.toLowerCase();
+		ret = (ext in pageTypes) && pageTypes[ext] || ret;
+	}
+	return ret;
+}
+
+var cols = [
+	{ label: "voicestar_ID1", field: "proxyid" },
+	{ label: "accountID", field: "acct" },
+	{ label: "voicestar_ID2", field: "rewriteid" },
+	{ label: "clickTime", field: "clickTime" },
+	{ label: "baseURL", field: "baseURL" },
+	{ label: "basePage", field: "basePage" },
+	{ label: "pageType", field: "pageType" },
+	{ label: "requestorURL", field: "referer" },
+	{ label: "Referrer", field: "browser" },
+	{ label: "userIP", field: "client_ip" },
+	{ label: "unknown3", field: "unknown3" }
+];
+var tr = new TabRenderer(cols);
+
+//	set up the content package
+var search = {
+	jsonrpc: "2.0",
+	method: "rewrite.log",
+	params: [
+		config.marchexAccount,
+		{
+			subacct: true,
+			accid: config.marchexAccount,
+			start: start,
+			end: end
+		}
+	],
+	id: 1
+};
+
+var _start = new Date();
+
+var user = config.marchexUser,
+	pwd = config.marchexPwd;
+var args = {
+	url: "https://api.marchex.io/api/jsonrpc/1",
+	data: c.json.serialize(search),
+	headers: {
+		"Content-Type": "application/json"
+	},
+	user: user,
+	password: pwd,
+	load: function(data, http){
+		data = c.json.parse(data);
+		data = data.result;
+
+		//	massage the data
+		var d = [];
+		for(var i=0, l=data.length; i<l; i++){
+			var item = data[i];
+			var base = parseUrl(item["page"]);
+			d.push({
+				proxyid: item["proxyid"],
+				acct: item["acct"],
+				rewriteid: item["rewriteid"],
+				clickTime: fromISODate(item["visit_time"]),
+				baseURL: base.URL,
+				basePage: base.page,
+				pageType: getPageType(base.page),
+				referer: item["referer"],
+				browser: "browser",				//	TODO: item["browser"] will get us the user agent string
+				client_ip: item["client_ip"],
+				unknown3: 0
+			});
+		}
+
+		//	for now create this as CSV. Go to tab-delimited in a bit
+		var s = tr.render(d);
+		c.write(config.csvPath + "data_" + (h.slice(-2)) + ".txt", s);
+//		c.write("d:\\ftp\\001_datafeeds\\data_00.txt", s);
+
+
+		console.flush();
+		c.print("Run time was " + ((new Date().valueOf() - _start.valueOf()) / 1000) + "s");
+	},
+	"error": function(err, http){
+		console.error(c.json.serialize(err, "\t"));
+		console.flush();
+		c.print(c.json.serialize(err, "\t"));
+	}
+};
+c.request("POST", args);
+</script>
+</job>

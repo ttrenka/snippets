@@ -1,0 +1,24 @@
+<style type="text/css">table.data-table > tbody > tr:nth-child(odd) > td { background-color: #ededed; } </style>
+<h1>Call Volume Alerts</h1>
+<p>The following campaigns had an unexpected volume of phone calls for ${report_date}:</p>
+<table width="960" class="data-table">
+	<thead>
+		<tr>
+			<td width="100%">
+				<table width="100%">
+					<tr>
+						<th width="16">&nbsp;</th>
+						<th>Phone Number</td>
+						<th>Phone Label</td>
+						<th>Severity</td>
+						<th align="right"># of Calls</td>
+						<th align="center">Expected Calls</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</thead>
+	<tbody>
+@{MarchexAlerts/AlertGroup}
+	</tbody>
+</table>

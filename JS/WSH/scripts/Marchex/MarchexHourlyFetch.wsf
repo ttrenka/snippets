@@ -1,0 +1,824 @@
+<job>
+<script language="jscript" src="../../core/config.js" />
+<script language="jscript" src="../../core/core.js" />
+<script language="jscript" src="../../renderer/CsvRenderer.js" />
+<script language="jscript">
+/***********************************************************************
+ *	Marchex Hourly Fetch
+ *
+ *	TRT 20160802
+ *	v.1.0.0
+ *
+ *	PURPOSE:
+ *	Get the last hour's worth of Marchex data and push into the 
+ *	database; then assemble and email any alerts for phone calls
+ *	that are out of range, based on the severity level asked for
+ *	by a user.
+ ***********************************************************************/
+var c = Core, console = new c.log(config.logPath + "Marchex\\MarchexHourlyFetch");
+
+//	Don't write stuff out in unicode
+c.writeUnicode = true;
+c.enableLogging = true;
+
+//	JSON-RPC parameters
+var t = new Date();
+
+//	set the date to the last hour.
+var t = new Date();
+t.setHours((t.getHours() - 1) + config.hourOffset);
+t.setMinutes(0);
+t.setSeconds(0);
+var y = t.getFullYear(), m = "00" + (t.getMonth()+1), d = "00" + t.getDate(), h = "00" + t.getHours();
+var dt = y + "-" + m.slice(-2) + "-" + d.slice(-2);
+var start = dt + "T" + h.slice(-2) + ":00:00Z",
+	end = dt + "T" + h.slice(-2) + ":59:59Z";
+
+c.print("The hour being fetched is " + start + " - " + end);
+
+//	inline templates to be used to generate data.
+var reVars = /\$\{([^\s\}]+)?\}/g, 
+	groupTmpl = '<tr><td><div class="program-info"><strong>[c${campaign_id}] ${campaign_name}</strong></div>@{MarchexAlerts/SubGroup}</td></tr>',
+	subGroupTmpl = '<table width="100%"><tr><td width="16">&nbsp;</td>'
+		+ '<td>${phone_number}</td>'
+		+ '<td>${phone_label}</td>'
+		+ '<td align="center">${severity_type}</td>'
+		+ '<td align="right"><strong>${value}</strong></td>'
+		+ '<td align="center">${range}</td>'
+		+ '</tr></table>';
+var templates = {
+	"MarchexAlerts/AlertGroup": groupTmpl,
+	"MarchexAlerts/SubGroup": subGroupTmpl
+};
+
+//	template functions (TODO: perhaps move this to Core at some point)
+function renderTemplate(tmpl, obj){
+	//	we will skip anything other than ${property}
+	for(var p in obj){
+		if(p.indexOf("/") == -1){
+			tmpl = tmpl.replace("${" + p + "}", obj[p]);
+		}
+	}
+	return tmpl;
+}
+
+//	ok, the functions to deal with the database
+function deleteData(){
+	var params = {
+		start: dt
+	};
+	var sql = "DELETE FROM callDataHourly "
+		+ "WHERE call_s >= :start";
+	c.push(sql, params, config.connection);
+	console.log("function deleteData: " + sql);
+}
+function insertData(data){
+	var tab = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", badIdx = [];
+	for(var i=0, l=data.length; i<l; i++){
+		var item = data[i], params = {}, fields = [], values = [], sql = "", count = 0;
+		for(var p in item){
+			//	fill out our params object without any of the custom fields.
+			if(p.indexOf("custom") == -1 && p != "note" && p != "high_intent"){
+				fields.push(p);
+				var f = "field-" + tab.charAt(count % tab.length);
+				values.push(":" + f);
+				params[f] = item[p];
+				count++;
+			}
+		}
+
+		try{
+			//	ok, make the sql statement.
+			sql = "INSERT INTO callDataHourly ("
+				+ fields.join(",")
+				+ ") VALUES ("
+				+ values.join(",")
+				+ ")";
+			c.push(sql, params, config.connection);
+		} catch(e){
+			c.print(e.message);
+			badIdx.push(i);
+			c.print("The insertData method bombed on record " + i + " (call ID: " + data[i]["call_id"] + ")");
+		}
+	}
+	//	if we have any bad indexes, try to push them in again.
+	for(var i=0; i<badIdx.length; i++){
+		var item = data[badIdx[i]], params = {}, fields = [], values = [], sql = "", count = 0;
+		for(var p in item){
+			//	fill out our params object without any of the custom fields.
+			if(p.indexOf("custom") == -1){
+				fields.push(p);
+				var f = "field-" + tab.charAt(count % tab.length);
+				values.push(":" + f);
+				params[f] = item[p];
+				count++;
+			}
+		}
+
+		try{
+			//	ok, make the sql statement.
+			sql = "INSERT INTO callDataHourly ("
+				+ fields.join(",")
+				+ ") VALUES ("
+				+ values.join(",")
+				+ ")";
+			c.push(sql, params, config.connection);
+		} catch(e){
+			c.print(e.message);
+			c.print("The insertData method bombed on record " + i + " (call ID: " + data[i]["call_id"] + ") (bad index retry)");
+		}
+	}
+}
+function cleanData(){
+	var params = {
+		end: dt + " " + h.slice(-2) + ":59:59"
+	};
+	var sql = "DELETE FROM callDataHourly "
+		+ "WHERE call_s > :end";
+	c.push(sql, params, config.connection);
+	console.log("function cleanData: " + sql);
+}
+
+function processData(){
+	//	ok, here's where we get our values.
+	var params = {
+		year: t.getFullYear(),
+		month: (t.getMonth() + 1),
+		day: t.getDate(),
+		hour: t.getHours()
+	};
+
+	var sql = "SELECT   "
+		+ "	l.campaignID AS ai_campaign_id, "
+		+ "	c.campaignName AS ai_campaign_name, " 
+		+ "	l.numberLabel AS label, "
+		+ "	cd.inboundno, "
+		+ " CONVERT(varchar, cd.call_s, 101) AS callDate, "
+		+ "	DATEPART(yyyy, cd.call_s) AS callYear, "
+		+ "	DATEPART(mm, cd.call_s) AS callMonth, "
+		+ "	DATEPART(dd, cd.call_s) AS callDay, "
+		+ "	DATEPART(hh, cd.call_s) AS callHour, "
+		+ "	count(cd.call_s) AS numCalls "
+		+ "FROM callDataHourly cd "
+		+ "INNER JOIN (campaignPhoneNumbers l "
+		+ "INNER JOIN campaigns c "
+		+ "	ON c.id = l.campaignID) "
+		+ "	ON l.inbound_no = cd.inboundno "
+		+ "WHERE  "
+		+ "	cd.call_s BETWEEN COALESCE(l.startDate, '1/1/1900') AND COALESCE(l.endDate, '12/31/2999') " 
+		+ "	AND cd.call_duration >= COALESCE(l.minSeconds, 0)  "
+		+ " AND c.state = 1 "
+		+ "	AND DATEPART(yyyy, cd.call_s) = :year "
+		+ "	AND DATEPART(mm, cd.call_s) = :month "
+		+ "	AND DATEPART(dd, cd.call_s) = :day "
+		+ "	AND DATEPART(hh, cd.call_s) = :hour "
+		+ "GROUP BY  "
+		+ "	l.campaignID,  "
+		+ "	c.campaignName,  "
+		+ "	l.numberLabel,  "
+		+ "	cd.inboundno,  "
+		+ "	CONVERT(varchar, cd.call_s, 101),  "
+		+ "	DATEPART(yyyy, cd.call_s),  "
+		+ "	DATEPART(mm, cd.call_s),  "
+		+ "	DATEPART(dd, cd.call_s),  "
+		+ "	DATEPART(hh, cd.call_s) "
+		+ "ORDER BY 1, 4, 6, 7, 8";
+	var rs = c.fetch(sql, params, config.connection), count = 0, campaigns = {};
+	for(var i=0, l=rs.items.length; i<l; i++){
+		var item = rs.items[i], id = item.ai_campaign_id;
+		if(!(id in campaigns)){
+			campaigns[id] = {
+				name: item.ai_campaign_name,
+				phone: { }
+			};
+		}
+		var o = campaigns[id];	//	shortcut to not have to type so fucking much.
+		//	let's fill in the phone number info.
+		var n = item.inboundno;
+		if(!(n in o.phone)){
+			o.phone[n] = {
+				label: item.label,
+				calls: item.numCalls
+			};
+		}
+	}
+
+	return campaigns;
+}
+
+function findAlerts(current){
+	//	the money shot one.  We grab existing data from callData, do all our processing on it, and
+	//	then compare the last data points from each to what we got from Marchex.
+
+	//	set up variables for our ranges
+	var maRange = 26, sdFactor = 2, minLength = 6, threshold = 4;
+
+	//	start by getting the data and assembling it.
+	var params = {
+		hour: t.getHours(),
+		range: -1 * (maRange * 2),
+		date: dt + " " + h.slice(-2) + ":59:59"
+	};
+
+	//	ok, first let's get our week dates that we'll use to create our buckets.
+	var sql = "WITH dates AS ( "
+		+ "    SELECT CONVERT(datetime, '2000-01-01') as date "
+		+ "    UNION ALL "
+		+ "    SELECT DATEADD(day, 1, date) "
+		+ "    FROM dates "
+		+ "    WHERE date < '2025-12-31' "
+		+ ") "
+		+ "SELECT  "
+		+ "	DATEPART(yy, date) AS year, "
+		+ "	DATEPART(mm, date) AS month, "
+		+ "	DATENAME(mm, date) AS monthName, "
+		+ "	LEFT(DATENAME(m, date), 3) AS monthNameShort, "
+		+ "	DATEPART(dd, date) AS day, "
+		+ "	DATEPART(ww, date) AS week, "
+		+ "	DATEPART(dw, date) AS dow, "
+		+ "	DATENAME(dw, date) AS dowName, "
+		+ "	LEFT(DATENAME(dw, date), 3) AS dowNameShort "
+		+ "FROM dates "
+		+ "WHERE  "
+		+ "	date BETWEEN DATEADD(ww, :range, :date) AND DATEADD(dd, -1, :date) "
+			+ "AND DATEPART(dw, date) = DATEPART(dw, :date) "
+		+ "OPTION (maxrecursion 0)" ;
+	var wrs = c.fetch(sql, params, config.connection), weeks = [], weekObj = {}, weeksReadable = [];
+	for(var i=0, l=wrs.items.length; i<l; i++){
+		var item = wrs.items[i], 
+			wdt = item.year + "-" + item.month + "-" + item.day,
+			wdtr = item.month + "/" + item.day + "/" + ("" + item.year).slice(-2);
+		weeks.push(wdt);
+		weeksReadable.push(wdtr);
+		weekObj[wdt] = {
+			date: wdt,
+			value: 0
+		};
+	}
+
+	//	Now let's get the actual data.
+	var sql = "SELECT   "
+		+ "	l.campaignID AS ai_campaign_id, "
+		+ "	c.campaignName AS ai_campaign_name, " 
+		+ "	l.numberLabel AS label, "
+		+ "	cd.inbound_no, "
+		+ " CONVERT(varchar, cd.call_s, 101) AS callDate, "
+		+ "	DATEPART(yyyy, cd.call_s) AS callYear, "
+		+ "	DATEPART(mm, cd.call_s) AS callMonth, "
+		+ "	DATEPART(dd, cd.call_s) AS callDay, "
+		+ "	DATEPART(hh, cd.call_s) AS callHour, "
+		+ "	count(cd.call_s) AS numCalls "
+		+ "FROM callData cd "
+		+ "INNER JOIN (campaignPhoneNumbers l "
+		+ "INNER JOIN campaigns c "
+		+ "	ON c.id = l.campaignID) "
+		+ "	ON l.inbound_no = cd.inbound_no "
+		+ "WHERE  "
+		+ "	cd.call_s BETWEEN COALESCE(l.startDate, '1/1/1900') AND COALESCE(l.endDate, '12/31/2999') " 
+		+ "	AND cd.duration_seconds >= COALESCE(l.minSeconds, 0)  "
+		+ "	AND cd.call_s between DATEADD(ww, :range, :date) and DATEADD(dd, -1, :date) "
+		+ "	AND DATEPART(dw, cd.call_s) = DATEPART(dw, :date) "
+		+ "	AND DATEPART(hh, cd.call_s) = :hour "
+		+ " AND c.state = 1 "
+		+ "GROUP BY  "
+		+ "	l.campaignID,  "
+		+ "	c.campaignName,  "
+		+ "	l.numberLabel,  "
+		+ "	cd.inbound_no,  "
+		+ "	CONVERT(varchar, cd.call_s, 101),  "
+		+ "	DATEPART(yyyy, cd.call_s),  "
+		+ "	DATEPART(mm, cd.call_s),  "
+		+ "	DATEPART(dd, cd.call_s),  "
+		+ "	DATEPART(hh, cd.call_s) "
+		+ "ORDER BY 1, 4, 6, 7, 8";
+
+	//	Process loop 1: assemble our data into a hierarchical structure
+	var rs = c.fetch(sql, params, config.connection), count = 0, campaigns = {};
+	for(var i=0, l=rs.items.length; i<l; i++){
+		var item = rs.items[i], id = item.ai_campaign_id;
+		if(!(id in campaigns)){
+			campaigns[id] = {
+				name: item.ai_campaign_name,
+				phone: { }
+			};
+		}
+		var o = campaigns[id];	//	shortcut to not have to type so fucking much.
+		//	let's fill in the phone number info.
+		var n = item.inbound_no;
+		if(!(n in o.phone)){
+			o.phone[n] = {
+				label: item.label,
+				data: [],
+				dataIdx: {},
+				moving: [],
+				sd: []
+			};
+		}
+		var data = o.phone[n].data;
+		var tmp = {
+			date: item.callYear + "-" + item.callMonth + "-" + item.callDay,
+			value: item.numCalls
+		};
+		data.push(tmp);
+		o.phone[n].dataIdx[tmp.date] = data.length - 1;
+	}
+
+	//	Process loop 2: replace the data array with our week objects so that we always have the same number of data points.
+	var cCount = 0, mid = 0, lastLimit = 3;		//	lastLimit is the number of weeks at the end of our data to check for calls.
+	for(var campaign in campaigns){
+		var cp = campaigns[campaign], pCount = 0;
+		for(var num in cp.phone){
+			var data = cp.phone[num].data, 
+				idx = cp.phone[num].dataIdx, 
+				d = [];	//	the new array for data.
+
+			//	pre-populate our new data array
+			for(var i=0, l=weeks.length; i<l; i++){
+				var tmp = c.mixin({}, weekObj[weeks[i]]);
+				if(weeks[i] in idx){
+					tmp = c.mixin(tmp, data[idx[weeks[i]]]);
+				}
+				d.push(tmp);
+			}
+
+			//	combine process loop 3 with process loop 2.
+			//	Check the last lastLimit weeks to see if we had any phone calls then.
+			var b = false;
+			for(var i=lastLimit; i>0; i--){
+				if(d[d.length - i].value > 0){
+					b = true;
+					break;
+				}
+			}
+
+			if(!b){
+				//	we don't care about it if there was no phone calls in the last lastLimit weeks
+				delete cp.phone[num];
+			} else {
+				//	integrate process loop 4
+				//	have to do it this way because ASP won't let me use prototype objects.
+				var ma = [];
+				for(var i=0, l=d.length; i<l; i++){ ma.push(d[i].value); }
+
+				//	do our operations and populate the calculated values
+				var l = ma.length;
+				mid = Math.floor(l/2);	//	save this for later
+				for(var i=mid; i<l; i++){
+					var a = ma.slice(i - mid, (l - mid) + i);	//	get the sub-section of the array we want
+					cp.phone[num].moving.push(c.math.average(a));
+					cp.phone[num].sd.push(c.math.sd(a));
+				}
+
+				//	replace the phone number's data object array with straight up values
+				cp.phone[num].values = ma.slice(mid);
+
+				//	swap out our info and remove the dataIdx property
+				//	cp.phone[num].data = d;
+				delete cp.phone[num].data;
+				delete cp.phone[num].dataIdx;
+
+				//	increase the phone number count
+				pCount++;
+			}
+		}
+
+		if(pCount == 0) delete campaigns[campaign];
+		else cCount++;
+	}
+
+	//	ok, we got here.  Now it is time to do the comparison and shoot out a list of any alerts.
+	var results = {}, rCount = 0;
+	for(var campaign in campaigns){
+		var cmp = campaigns[campaign];
+		results[campaign] = {
+			name: cmp.name,
+			phone: {}
+		};
+		for(var phone in cmp.phone){
+			var ph = cmp.phone[phone];
+			results[campaign].phone[phone] = {
+				label: ph.label,
+				min: ph.moving[ph.moving.length-1] - (threshold * ph.sd[ph.sd.length - 1]),
+				max: ph.moving[ph.moving.length-1] + (threshold * ph.sd[ph.sd.length - 1]),
+				value: 0
+			};
+		}
+	}
+
+	//	see if we have the same campaign + number in our processed data.
+	var alerts = {}, aFactor = 2, sev_calls = 10;	//	how many actual calls before we call something major or severe
+	for(var campaign in current){
+		if(campaign in results){
+			var cr = results[campaign];
+			for(var phone in current[campaign].phone){
+				if(phone in cr.phone){
+					//	if it's not there, it might be a new number.
+					var ph = cr.phone[phone],
+						calls = current[campaign].phone[phone].calls;
+					if(calls <= ph.min || calls >= ph.max){
+						//	the old way, doing it via a difference between the right range setting
+						var diff = (calls <= ph.min) ? ph.min - calls: calls - ph.max;
+
+						//	the new way of doing it. Right now we're assuming max. TODO
+						var which = (calls < ph.min) ? ph.min : ph.max;
+						var minor = which * aFactor,
+							intermediate = minor * aFactor,
+							major = intermediate * aFactor;
+
+						if(!(campaign in alerts)){
+							alerts[campaign] = {
+								name: cr.name,
+								phone: {}
+							};
+						}
+						if(!(phone in alerts[campaign].phone)){
+							var tmp = {
+								label: ph.label,
+								min: ph.min,
+								max: ph.max,
+								value: calls,
+								severity: 0,
+								type: ""
+							};
+
+							//	set up the alert type.
+							if(calls < minor){ 
+								tmp.severity = 1;
+								tmp.type = "Minor";
+							}
+							if(calls >= minor){ 
+								tmp.severity = 2;
+								tmp.type = "Intermediate";
+							}
+							if(calls >= intermediate && calls > sev_calls){ 
+								tmp.severity = 3;
+								tmp.type = "Major";
+							}
+							if(calls >= major && calls > sev_calls){ 
+								tmp.severity = 4;
+								tmp.type = "Severe";
+							}
+
+							//	add it to the alerts object
+							alerts[campaign].phone[phone] = tmp;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return {
+		alerts: alerts,
+		results: results
+	};
+}
+
+function storeAlerts(alerts){
+	//	wipe any alerts for the current hour that might be there already
+	var params = {
+		start: dt,
+		hour: t.getHours()
+	};
+	
+	var sql = "DELETE FROM alertsPhone "
+		+ "WHERE alert_date >= :start AND alert_hour >= :hour";
+	c.push(sql, params, config.connection);
+
+	//	Set a threshold to only let major and severe alerts be called that if there's more than n calls.
+	//	If the number of calls is less that that, downgrade to 2/Intermediate.
+	var threshold = 10;
+
+	//	go ahead and insert the current set of alerts into the table
+	for(var campaign in alerts){
+		var obj = alerts[campaign];
+		for(var phone in obj.phone){
+			var params = {
+				campaign_id: campaign,
+				campaign_name: obj.name,
+				alert_date: dt,
+				alert_hour: t.getHours(),
+				phone: phone,
+				label: obj.phone[phone].label,
+				severity: (obj.phone[phone].value > threshold) ? obj.phone[phone].severity : 2,
+				type: (obj.phone[phone].value > threshold) ? obj.phone[phone].type : "Intermediate",
+				value: obj.phone[phone].value,
+				range_min: obj.phone[phone].min,
+				range_max: obj.phone[phone].max
+			};
+
+			var sql = "INSERT INTO alertsPhone (campaign_id, campaign_name, alert_date, alert_hour, phone, phone_label, severity, severity_type, value, range_min, range_max) "
+				+ "VALUES(:campaign_id, :campaign_name, :alert_date, :alert_hour, :phone, :label, :severity, :type, :value, :range_min, :range_max)";
+			c.push(sql, params, config.connection);
+		}
+	}
+	return alerts;
+}
+
+function sendAlerts(alerts){
+	//	get a list of users looking for alerts for the given campaigns at the alert level,
+	//	assemble a complete list for said user, and send out a single email to each one
+	//	detailing a list of campaigns and how concerned they should be about it.
+
+	//	First, filter out anything but severe alerts.
+	var count = 0, na = {}, ids = [], sev = 4;	//	for testing purposes; should be set to 4 in production.
+	for(var campaign in alerts){
+		for(var phone in alerts[campaign].phone){
+			//	we only want severe alerts for immediate delivery
+			if(alerts[campaign].phone[phone].severity >= sev){
+				//	push stuff in
+				if(!(campaign in na)){
+					na[campaign] = {
+						name: alerts[campaign].name,
+						phone: {}
+					};
+					ids.push(campaign);
+				}
+
+				if(!(phone in na[campaign].phone)){
+					var p = na[campaign].phone,
+						q = alerts[campaign].phone[phone];
+					p[phone] = {
+						label: q.label,
+						severity: q.severity,
+						type: q.type,
+						value: q.value,
+						min: q.min,
+						max: q.max
+					};
+					count++;
+				}
+			}
+		}
+	}
+
+	//	format the date for the report.
+	var reportDate = c.format.date(t);
+	reportDate = reportDate.split(":");
+	var tm = c.trim(reportDate[reportDate.length-1].slice(-3));
+	reportDate.pop();
+	reportDate = reportDate.join(":") + tm;	
+	if(!count){
+		//	we have no severe alerts, so don't bother with the rest of the stuff.
+		console.log("For " + reportDate + ", there were no severe alerts.");
+		return;
+	}
+
+	//	OK, for each campaign in our alerts, get a list of watchers and send it out.
+	var sql = "SELECT u.firstName, u.lastName, u.email, ua.campaign_id "
+		+ "FROM users u INNER JOIN userAlerts ua ON ua.user_id = u.id "
+		+ "WHERE ua.campaign_id IN ('" + ids.join("','") + "') "
+		+ "ORDER BY ua.campaign_id, u.lastName, u.firstName";
+	c.print(sql);
+	var users_rs = c.fetch(sql, {}, config.connection);
+
+	//	This is the complete list, to go out to admin types.
+	var a = [];
+	for(var campaign in na){
+		var id = campaign, name = na[campaign].name;
+		var o = {
+			campaign_id: id,
+			campaign_name: name,
+			"MarchexAlerts/SubGroup": []
+		};
+		for(var phone in na[campaign].phone){
+			var pn = phone;
+			pn = pn.indexOf("+") == 0 ? pn : "(" + pn.slice(0,3) + ") " + pn.slice(3, 6) + "-" + pn.slice(-4);
+			var range = c.format.num(na[campaign].phone[phone].max, 3);
+			o["MarchexAlerts/SubGroup"].push({
+				phone_number: pn,
+				phone_label: na[campaign].phone[phone].label,
+				severity_type: na[campaign].phone[phone].type,
+				value: na[campaign].phone[phone].value,
+				range: range
+			});
+		}
+		a.push(o);
+	}
+
+	var d = {
+		reportDate: reportDate,
+		data: a
+	};
+	assembleEmail("admin@aimediagroup.com", d);
+	assembleEmail("notices@aimediagroup.com", d);
+
+	//	Now do it for individual users
+	var users = {};
+	for(var i=0, l=users_rs.items.length; i<l; i++){
+		var item = users_rs.items[i],
+			cp_id = item.campaign_id,
+			user = item.email;
+		if(!(user in users)){
+			users[user] = {
+				data: [] 
+			};	//	keep it empty, we'll add the campaign info here
+		}
+		var campaign = na[cp_id];
+		var o = {
+			campaign_id: cp_id,
+			campaign_name: campaign.name,
+			"MarchexAlerts/SubGroup": []
+		};
+		for(var phone in campaign.phone){
+			var pn = phone;
+			pn = pn.indexOf("+") == 0 ? pn : "(" + pn.slice(0,3) + ") " + pn.slice(3, 6) + "-" + pn.slice(-4);
+			var range = c.format.num(campaign.phone[phone].max, 3);
+			o["MarchexAlerts/SubGroup"].push({
+				phone_number: pn,
+				phone_label: campaign.phone[phone].label,
+				severity_type: campaign.phone[phone].type,
+				value: campaign.phone[phone].value,
+				range: range
+			});
+		}
+		users[user].data.push(o);
+	}
+
+	//	ok, now that we've assembled all the users getting alerts and merged all the campaign/phone information into them,
+	//	loop over the users and send out the emails.  One per user.
+	for(var user in users){
+		var d = { reportDate: reportDate, data: users[user].data };
+//		c.print("setting up email for " + user + ": " + c.json.serialize(d, "\t"));
+		assembleEmail(user, d);
+	}
+}
+
+function assembleEmail(user, d){
+	//	stand-alone function to actually render severe alert emails per user + data (d) object
+		//	OK, go load and assemble our templates.  For testing purposes, we'll write the 
+		//	result to disc.
+	var data = {
+		email_title: "AiTRK Phone Alerts for " + d.reportDate,
+		report_date: d.reportDate,
+		"MarchexAlerts/AlertGroup": d.data
+	};
+
+	var tmpl = c.read((""+ config.templatePath) + "MarchexHourlyFetch.tmpl");
+	
+	//	ok, we got our main template, let's render it manually.
+	var group = templates["MarchexAlerts/AlertGroup"], subgroup = templates["MarchexAlerts/SubGroup"];
+	var rows = [];
+	for(var i=0, l=data["MarchexAlerts/AlertGroup"].length; i<l; i++){
+		var item = data["MarchexAlerts/AlertGroup"][i], row = group + "";
+		row = renderTemplate(row, item);
+
+		//	the sub groups
+		var subrows = [];
+		for(var j=0, jl=item["MarchexAlerts/SubGroup"].length; j<jl; j++){
+			var subItem = item["MarchexAlerts/SubGroup"][j], subrow = subgroup + "";
+			subrows.push(renderTemplate(subrow, subItem));
+		}
+		rows.push(row.replace("@{MarchexAlerts/SubGroup}", subrows.join("\n")));
+	}
+
+	//	final result
+	var output = tmpl.replace("@{MarchexAlerts/AlertGroup}", rows.join("\n"));
+	output = renderTemplate(output, data);
+
+	c.write(config.csvPath + "MarchexEmail_" + new Date().valueOf() + ".html", output);
+
+	//	assemble and send out the email
+	var params = {
+		from: "reports@aimediagroup.com",
+		to: user,
+		subject: data.email_title,
+		html: output
+	};
+
+	c.mail(params, config);
+}
+
+var cols = [
+	{ label: "a_name", field: "a_name" },
+	{ label: "acct", field: "acct" },
+	{ label: "agent_ring_count", field: "agent_ring_count" },
+	{ label: "agent_speech_duration", field: "agent_speech_duration" },
+	{ label: "answer_offset", field: "answer_offset" },
+	{ label: "ass_user", field: "ass_user" },
+	{ label: "assigned_to", field: "assigned_to" },
+	{ label: "billable_minutes", field: "billable_minutes" },
+	{ label: "c_name", field: "c_name" },
+	{ label: "call_duration", field: "call_duration" },
+	{ label: "call_end", field: "call_end" },
+	{ label: "call_id", field: "call_id" },
+	{ label: "call_s", field: "call_s" },
+	{ label: "call_start", field: "call_start" },
+	{ label: "call_status", field: "call_status" },
+	{ label: "caller_name", field: "caller_name" },
+	{ label: "caller_number", field: "caller_number" },
+	{ label: "caller_speech_duration", field: "caller_speech_duration" },
+	{ label: "camp_kw", field: "camp_kw" },
+	{ label: "cmp_id", field: "cmp_id" },
+	{ label: "disposition", field: "disposition" },
+	{ label: "dna_class", field: "dna_class" },
+	{ label: "duration", field: "duration" },
+	{ label: "forwardno", field: "forwardno" },
+	{ label: "g_name", field: "g_name" },
+	{ label: "grp_id", field: "grp_id" },
+	{ label: "inbound_ext", field: "inbound_ext" },
+	{ label: "inboundno", field: "inboundno" },
+	{ label: "keyword", field: "keyword" },
+	{ label: "listenedto", field: "listenedto" },
+	{ label: "note", field: "note" },
+	{ label: "numlookup", field: "numlookup" },
+	{ label: "numlookup_p", field: "numlookup_p" },
+	{ label: "numlookup_name", field: "numlookup_name" },
+	{ label: "numlookup_address", field: "numlookup_address" },
+	{ label: "numlookup_city", field: "numlookup_city" },
+	{ label: "numlookup_state", field: "numlookup_state" },
+	{ label: "numlookup_zip", field: "numlookup_zip" },
+	{ label: "rating", field: "rating" },
+	{ label: "recorded", field: "recorded" },
+	{ label: "redacted", field: "redacted" },
+	{ label: "revenue", field: "revenue" },
+	{ label: "ring_duration", field: "ring_duration" },
+	{ label: "status", field: "status" }
+];
+var tr = new CsvRenderer(cols);
+
+//	set up the content package
+var search = {
+	jsonrpc: "2.0",
+	method: "call.search",
+	params: [
+		config.marchexAccount,
+		{
+			subacct: true,
+			include_dna: true,
+//			exact_times: true,
+			start: start,
+			end: end
+		}
+	],
+	id: 1
+};
+
+var _start = new Date();
+
+//	permissions to access the JSON-RPC API
+var user = config.marchexUser,
+	pwd = config.marchexPwd;
+var args = {
+	url: "https://api.marchex.io/api/jsonrpc/1",
+	data: c.json.serialize(search),
+	headers: {
+		"Content-Type": "application/json"
+	},
+	user: user,
+	password: pwd,
+	load: function(data, http){
+		data = c.json.parse(data);
+		data = data.result;
+
+		//	do our DB manipulation
+		c.print("The number of records returned is " + data.length);
+//		c.print(new Date().getTimezoneOffset());
+
+		//	Post-process the numlookup field
+		for(var i=0, l=data.length; i<l; i++){
+			var item = data[i];
+			item["numlookup"] = item["numlookup"].replace(/\s+/g, " ");
+			var tmp = item["numlookup"].split("===");
+			item["numlookup_name"] = tmp[0] || "";
+			item["numlookup_address"] = tmp[1] || "";
+			item["numlookup_city"] = tmp[2] || "";
+			item["numlookup_state"] = tmp[3] || "";
+			item["numlookup_zip"] = tmp[4] || "";
+
+			//	kill the note field
+			item["note"] = "";
+		}
+
+		c.write(config.csvPath + "call_log.json", c.json.serialize(data, "\t"));
+
+		//	experimental: write out a csv file first so we can inpect the data.
+//		var s = tr.render(data);
+//		c.write(config.csvPath + "call_data_log.csv", s);
+
+//*
+		deleteData();
+
+		insertData(data);
+		cleanData();
+		var campaigns = processData();
+		var o = findAlerts(campaigns);
+		var alerts = o.alerts;
+
+		//	ok, now is the time when we go find the users who are looking for the alerts and email the fuckers.
+		//	here goes nothing.
+		storeAlerts(alerts);
+		sendAlerts(alerts);
+// */
+
+		console.flush();
+		c.print("Run time was " + ((new Date().valueOf() - _start.valueOf()) / 1000) + "s");
+	},
+	"error": function(err, http){
+		c.print(c.json.serialize(err, "\t"));
+	}
+};
+
+c.request("POST", args);
+</script>
+</job>

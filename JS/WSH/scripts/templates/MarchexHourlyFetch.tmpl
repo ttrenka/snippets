@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<!-- Using XHTML Strict because Gmail and Hotmail strip doctype and use that anyway -->
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes, target-densitydpi=device-dpi" />
+<title>${email_title}</title>
+
+<style type="text/css">
+/**
+ * Use find and replace to change colors
+ *
+ * Background: FFFFFF
+ * Headlines: 444444
+ * Text: 555555
+ * Horizontal Dividers: EEEEEE
+ * Content Area Background: FEFEFE
+ * Font Family: Helvetica, Arial, Sans-Serif
+ *
+ * Note: Some clients (gmail) require inline styling, the AMM doesn't parse
+ *       and transfer styles to be inline on components
+ *
+ * http://litmus.com
+ * http://www.campaignmonitor.com/css/
+ * http://www.campaignmonitor.com/resources/will-it-work/guidelines/
+ *
+ **/
+
+
+/* Reset Styles
+ * reset adapted from htmlemailboilerplate.com
+**********************************************/
+img { border: none; height:auto; outline:none; text-decoration:none; -ms-interpolation-mode: bicubic; max-width: 100% !important; height: auto;}
+table td { border-collapse:collapse; vertical-align: top; font-size: 0.9em; padding: 0.1em 0.5em;}
+a img { border:none; }
+p { margin: 0 0 1em; }
+strong { font-weight: bold; }
+em { font-style: italic; }
+blockquote { margin: 2em; }
+
+td > img {
+	max-width: 100% !important;
+}
+/*
+table.data-table tbody tr:nth-child(odd) td { background-color: #ededed; }
+*/
+/* Outlook */
+#outlook a { padding:0; }
+
+/* Hotmail */
+.ReadMsgBody { width:100% !important; }
+.ExternalClass { width:100% !important; }
+.ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td, .ExternalClass div {line-height: 100%;}
+
+/* Template Styles
+**********************************************/
+/* Helpful general use */
+html, body { height:100% !important; }
+html, body, #backgroundTable { margin:0; padding:0; background-color:#FFFFFF; }
+body[yahoofix] img { max-width:100% !important;}
+table {table-layout: fixed; margin: 0 auto !important;}
+table th { border-bottom: 1px solid #cdcdcd; }
+img.alignright { float: right; margin: 0 0 1em 1em; }
+img.alignleft { float: left; margin: 0 1em 1em 0; }
+
+/* General Elements */
+h1 { font-size: 2em; }
+h2 { font-size: 1.8em; }
+h3 { font-size: 1.4em; }
+h4 { font-size: 1.2em; }
+h5 { font-size: 1em; }
+h6 { font-size: .9em; }
+a { color: #549BE7 !important; }
+a:visited { color: #6995AD !important; }
+a:hover { color: #7DB5F1 !important; text-decoration: none; }
+a:active { color: #1A83BD !important; }
+h1, h2, h3, h4, h5, h6 { color: #444444 !important; display: block; margin: 0 0 .5em; padding: 0; text-align: left; line-height: 1.25em; }
+
+/* Yahoo style override */
+.undoreset table {
+	margin: 0 auto !important;
+}
+
+/* Mobile Styles */
+@media only screen and (max-width: 620px) {
+/* @media only screen and (max-width: 480px) { */
+	/* Need the body[notyahoo] or yahoo will always render media queries */
+	/* http://www.emailonacid.com/blog/details/C13/stop_yahoo_mail_from_rendering_your_media_queries */
+	body[notyahoo], body[notyahoo] #main_table, body[notyahoo] #optout_table { width: 100%; }
+	body[notyahoo] { font-size: 16px !important; line-height: 1.5em !important; }
+	body[notyahoo] h1 { font-size: 1.6em !important; }
+	body[notyahoo] h2 { font-size: 1.4em !important; }
+	body[notyahoo] h3 { font-size: 1.2em !important; }
+	body[notyahoo] h4 { font-size: 1.1em !important; }
+	body[notyahoo] h5 { font-size: 1em !important; }
+	body[notyahoo] h6 { font-size: .9em !important; }
+	body[notyahoo] h1, body[notyahoo] h2, body[notyahoo] h3, body[notyahoo] h4, body[notyahoo] h5, body[notyahoo] h6 { line-height: 1.25em !important; }
+	#backgroundTable { border: none !important; }
+	body[notyahoo] #column_full, body[notyahoo] #column_1,  body[notyahoo] #column_2 { display: block; margin: 0 0 20px; width: 100%; }
+	body[notyahoo] .spacer_col { display: none; }
+	#main_table {table-layout: auto;}
+}
+</style>
+</head>
+<body notyahoo="fix_yahoo_media_query_bug" yahoofix="fix_img_max_width" style="width:100% !important; -webkit-text-size-adjust: none; margin:0 !important; padding:0 !important; color: #555555 !important; font-size: 14px; line-height: 1.5em; font-family: Helvetica, Arial, Sans-Serif;">
+	<!-- Sets width so table doesn't flex until media query is hit -->
+	<div style="width: 100%;" class="spacer_col">&nbsp;</div>
+	<center>
+		<!-- Background set on wrapping table for support consistency -->
+		<!-- Fonts must be inlined in multiple places, use find and replace to change -->
+		<table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#FFFFFF" id="backgroundTable" style="border: 10px solid #FFFFFF; border-top: none; color: #555555 !important; font-size: 14px; line-height: 1.33em; font-family: Helvetica, Arial, Sans-Serif;">
+			<tr>
+				<td align="center" valign="top">
+					<center>
+					<table id="main_table" border="0" width="100%" cellpadding="0" cellspacing="0" bgcolor="#FEFEFE">
+						<tr>
+							<td width="20">&nbsp;</td>
+							<td align="left" valign="top" width="98%" style="font-size: 1em; line-height: 1.33em; color: #555555 !important; font-family: Helvetica, Arial, Sans-Serif;">
+<style type="text/css">
+	table.data-table > tbody > tr:nth-child(odd) > td { background-color: #ededed; }
+	div.program-info { border-bottom: 1px solid #bbb; padding-top: 1em;}
+</style>
+<h1>Call Volume Alerts</h1>
+<p>The following campaigns had an unexpected volume of phone calls for ${report_date}:</p>
+<table width="100%" class="data-table">
+	<thead>
+		<tr>
+			<td width="100%">
+				<table width="100%">
+					<tr>
+						<th width="16">&nbsp;</th>
+						<th>Phone Number</td>
+						<th>Phone Label</td>
+						<th>Severity</td>
+						<th align="right"># of Calls</td>
+						<th align="center">Expected Calls</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</thead>
+	<tbody>
+@{MarchexAlerts/AlertGroup}
+	</tbody>
+</table>
+
+							</td>
+							<td width="20">&nbsp;</td>
+						</tr>
+					</table>
+					</center>
+				</td>
+			</tr>
+		</table>
+	</center>
+</body>
+</html>
+

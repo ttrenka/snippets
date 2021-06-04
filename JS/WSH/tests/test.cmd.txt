@@ -1,0 +1,2 @@
+::For convenience
+@cscript //nologo //D "%~dp0../scripts/test.wsf" %*

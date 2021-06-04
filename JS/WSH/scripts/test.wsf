@@ -1,0 +1,11 @@
+<job>
+<script language="jscript" src="../core/config.js" />
+<script language="jscript" src="../core/core.js" />
+<script language="jscript">
+	//	find out all the variables from WScript.
+	var args = WScript.Arguments;
+	for(var i=0, l=args.length; i<l; i++){
+		WScript.Echo(args(i));
+	}
+</script>
+</job>
