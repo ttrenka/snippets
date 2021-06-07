@@ -3,7 +3,7 @@ using System.Data;
 using DepartmentZed;
 using DepartmentZed.eCommerce;
 
-namespace Zirh.Automation{
+namespace DepartmentZed.Automation{
 	public class CompleteImport : IPackage{
 		private string connectionString;
 		public CompleteImport(string cn) {

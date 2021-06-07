@@ -7,9 +7,9 @@ using System.Text;
 using EnterpriseDT.Net.Ftp;
 using DepartmentZed;
 using DepartmentZed.eCommerce;
-using Zirh.Data;
+using DepartmentZed.Data;
 
-namespace Zirh.Automation {
+namespace DepartmentZed.Automation {
 	public class Fulfillment : IPackage	{
 		private string ftpUri ;
 		private string ftpDirectory;
@@ -178,7 +178,7 @@ namespace Zirh.Automation {
 				Utilities.ExecuteNonQuery(sql, connectionString);
 
 				sql = "INSERT INTO usrOrderStatus (usrOrder, OrderStatus, PostedOn, Comments)"
-					+ "SELECT DISTINCT id, '" + OrderStatuses.InProgress + "', GETDATE(), 'Posted to TripleFin on " + DateTime.Now.ToLongDateString() + " at " + DateTime.Now.ToLongTimeString() + " by Automated ZIRH TaskManager.' "
+					+ "SELECT DISTINCT id, '" + OrderStatuses.InProgress + "', GETDATE(), 'Posted to TripleFin on " + DateTime.Now.ToLongDateString() + " at " + DateTime.Now.ToLongTimeString() + " by Automated DepartmentZed TaskManager.' "
 					+ "FROM usrOrder WHERE CurrentStatus = '" + OrderStatuses.NewOrder + "' ";
 				Utilities.ExecuteNonQuery(sql, connectionString);
 
@@ -199,7 +199,7 @@ namespace Zirh.Automation {
 					}
 					msg += "\r\n\r\nHave fun.";
 					Utilities.SendMail(
-						"customercare@zirh.com",
+						"customercare@example.com",
 						errorEmails,
 						"Fulfillment package error on " + DateTime.Now.ToString("g"),
 						msg

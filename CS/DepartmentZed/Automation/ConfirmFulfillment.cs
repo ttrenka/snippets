@@ -7,7 +7,7 @@ using DepartmentZed;
 using DepartmentZed.eCommerce;
 using EnterpriseDT.Net.Ftp;
 
-namespace Zirh.Automation {
+namespace DepartmentZed.Automation {
 	public class ConfirmFulfillment : IPackage {
 		private string connectionString;
 		private string ftpUri ;
@@ -91,7 +91,6 @@ namespace Zirh.Automation {
 				ftp.DebugResponses(true);
 				ftp.Login(user, pwd);
 				ftp.TransferType = FTPTransferType.BINARY;
-				if (FtpUri == "dept-z.mine.nu")	ftp.ConnectMode = FTPConnectMode.ACTIVE;
 				FTPFile[] files = ftp.DirDetails(ftpDirectory + filemask);
 				if (ftpDirectory.IndexOf("/") > -1) {
 					string[] dirs = ftpDirectory.Split('/');
@@ -137,13 +136,13 @@ namespace Zirh.Automation {
 								if (o.StatusHistory[j].Status == OrderStatuses.Fulfilled) {
 									test = true;
 									o.StatusHistory[j].PostedOn = dt;
-									o.StatusHistory[j].Comment = "Fulfillment and transaction completed by ZIRH TaskManager.";
+									o.StatusHistory[j].Comment = "Fulfillment and transaction completed by DepartmentZed TaskManager.";
 									break;
 								}
 							}
 
 							if (!test){
-								o.StatusHistory.Add(new OrderStatus(OrderStatuses.Fulfilled, dt, "Fulfillment and transaction completed by ZIRH TaskManager."));
+								o.StatusHistory.Add(new OrderStatus(OrderStatuses.Fulfilled, dt, "Fulfillment and transaction completed by DepartmentZed TaskManager."));
 							}
 
 							//	save the info to the order stuff.
@@ -162,7 +161,7 @@ namespace Zirh.Automation {
 								+ order + ","
 								+ "'" + OrderStatuses.Fulfilled + "', "
 								+ "'" + dt.ToString("yyyy-MM-dd HH:mm:ss") + "',"
-								+ "'Fulfillment and transaction completed by ZIRH TaskManager.'"
+								+ "'Fulfillment and transaction completed by DepartmentZed TaskManager.'"
 								+ ")";
 							Utilities.ExecuteNonQuery(sql, connectionString);
 						} else {
@@ -184,14 +183,14 @@ namespace Zirh.Automation {
 			if (arr.Count > 0) {
 				//	we had errors, assemble the single mail.
 				Utilities.SendMail(
-					"customercare@zirh.com",
+					"customercare@example.com",
 					CustomerService,
 					"Transaction problems with order finalization",
-					@"This is a generated report from the ZIRH TaskManager.
+					@"This is a generated report from the DepartmentZed TaskManager.
 
 The following orders were rejected when attempting to finalize transactions:"
 					+ String.Join("\r\n", (string[])arr.ToArray("".GetType()))
-					+ @"Please use the ZIRH.com Adminstration tool for more information.
+					+ @"Please use the DepartmentZed.com Adminstration tool for more information.
 
 THESE ORDERS HAVE BEEN SHIPPED."
 				);

@@ -5,9 +5,9 @@ using System.Net ;
 using System.Text;
 using DepartmentZed;
 using DepartmentZed.eCommerce;
-using Zirh.Data;
+using DepartmentZed.Data;
 
-namespace Zirh.Automation {
+namespace DepartmentZed.Automation {
 	public class AutoShipments : IPackage {
 		private string connectionString = "";
 		private string transUser;
@@ -154,39 +154,39 @@ namespace Zirh.Automation {
 
 						//	send out the email.
 						Utilities.SendMail(
-							"mylocker@zirh.com",
+							"mylocker@example.com",
 							ot.User.Username,
-							"ZIRH AutoShip Order #" + o.OrderNumber,
+							"DepartmentZed AutoShip Order #" + o.OrderNumber,
 							Receipt.AsText(o),
 							Receipt.AsHtml(o)
 						);
 					} else {
 						//	disable the order, send an email to the customer
-						string subject = "Error with your ZIRH locker";
+						string subject = "Error with your DepartmentZed locker";
 						string msg = "Login name: " + o.User.Username + "\r\n\r\n"
 							+ "Dear " + o.User.FirstName + ",\r\n\r\n"
-							+ "We are having some difficulty fulfilling your next Zirh Locker order, which was set to ship on " + DateTime.Now.ToLongDateString() + ". The error is:\r\n\r\n"
+							+ "We are having some difficulty fulfilling your next DepartmentZed Locker order, which was set to ship on " + DateTime.Now.ToLongDateString() + ". The error is:\r\n\r\n"
 							+ "Credit Card not no longer accepted: " + a.Result.Reason + "\r\n\r\n"
 							+ "To correct this problem, please click here:\r\n\r\n"
-							+ "http://www.zirh.com/autoship.aspx\r\n\r\n"
-							+ "If we can be of service, just let us know. The Zirh Locker Service Center can be reached by email at mylocker@zirh.com or by phone toll-free at 1-800-295-8877 (9AM - 6PM EST).\r\n\r\n"
+							+ "http://www.example.com/autoship.aspx\r\n\r\n"
+							+ "If we can be of service, just let us know. The DepartmentZed Locker Service Center can be reached by email at mylocker@example.com or by phone toll-free at 1-800-295-8877 (9AM - 6PM EST).\r\n\r\n"
 							+ "Unfortunately your Locker orders cannot be shipped until you click on the link above and correct the error indicated above.\r\n\r\n\r\n"
 							+ "Best regards,\r\n\r\n"
-							+ "Zirh Locker Administrator";
+							+ "DepartmentZed Locker Administrator";
 						string html = "<html><head></head><body>"
 							+ "<p>Login name: " + o.User.Username + "</p>"
 							+ "<p>Dear " + o.User.FirstName + ",</p>"
-							+ "<p>We are having some difficulty fulfilling your next Zirh Locker order, which was set to ship on " + DateTime.Now.ToLongDateString() + ". The error is:</p>"
+							+ "<p>We are having some difficulty fulfilling your next DepartmentZed Locker order, which was set to ship on " + DateTime.Now.ToLongDateString() + ". The error is:</p>"
 							+ "<p><b>Credit Card not no longer accepted: <pre>" + a.Result.Reason + "</pre></b></p>"
-							+ "<p>To correct this problem, <a href=\"http://www.zirh.com/autoship.aspx\">please click here</a>.</p>"
-							+ "<p>If we can be of service, just let us know. The Zirh Locker Service Center can be reached by email at mylocker@zirh.com or by phone toll-free at 1-800-295-8877 (9AM - 6PM EST).</p>"
+							+ "<p>To correct this problem, <a href=\"http://www.example.com/autoship.aspx\">please click here</a>.</p>"
+							+ "<p>If we can be of service, just let us know. The DepartmentZed Locker Service Center can be reached by email at mylocker@example.com or by phone toll-free at 1-800-295-8877 (9AM - 6PM EST).</p>"
 							+ "<p>Unfortunately your Locker orders cannot be shipped until you click on the link above and correct the error indicated above.</p>"
 							+ "<p><div>Best regards,</div>"
-							+ "<div>Zirh Locker Administrator</div></p>"
+							+ "<div>DepartmentZed Locker Administrator</div></p>"
 							+ "</body></html>";
 
 						Utilities.SendMail(
-							"mylocker@zirh.com",
+							"mylocker@example.com",
 							o.User.Username,
 							subject,
 							msg,

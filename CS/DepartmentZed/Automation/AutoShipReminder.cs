@@ -2,9 +2,9 @@ using System;
 using System.Data;
 using DepartmentZed;
 using DepartmentZed.eCommerce;
-using Zirh.Data;
+using DepartmentZed.Data;
 
-namespace Zirh.Automation {
+namespace DepartmentZed.Automation {
 	public class AutoShipReminder : IPackage {
 		private string connectionString;
 		public AutoShipReminder() {	}
@@ -51,7 +51,7 @@ namespace Zirh.Automation {
 			if (otl.Count == 0) return;
 
 			DateTime now = DateTime.Now.AddDays(4);
-			string subject = "Please verify your upcoming Zirh Locker order";
+			string subject = "Please verify your upcoming DepartmentZed Locker order";
 			for (int i = 0; i < otl.Count; i++){
 				OrderTemplate ot = otl[i];
 				if (ot.BillingAddress.Country != "US") continue;
@@ -71,29 +71,29 @@ namespace Zirh.Automation {
 
 				if (ci.Count > 0){
 					//	assemble the email and send it out.
-					string msg = ot.User.FirstName + "'s Upcoming Zirh Locker Order\r\n"
+					string msg = ot.User.FirstName + "'s Upcoming DepartmentZed Locker Order\r\n"
 						+ "Your order will ship approximately " + now.ToLongDateString() + ".\r\n"
 						+ "Your login name: " + ot.User.Username + "\r\n\r\n"
 						+ "Dear " + ot.User.FirstName + ",\r\n"
-						+ "This is just a quick reminder that your upcoming Zirh Locker order is scheduled to ship around " + now.ToLongDateString() + ". We hope you enjoy the convenience of keeping your virtual Locker at Zirh!\r\n\r\n"
-						+ "Scheduled Zirh Locker Items:\r\n\r\n"
+						+ "This is just a quick reminder that your upcoming DepartmentZed Locker order is scheduled to ship around " + now.ToLongDateString() + ". We hope you enjoy the convenience of keeping your virtual Locker at DepartmentZed!\r\n\r\n"
+						+ "Scheduled DepartmentZed Locker Items:\r\n\r\n"
 						+ "\tItem\t\t\t\tPrice"
 						+ "\t----------------\t\t\t\t------";
 					for (int j = 0; j < ci.Count; j++) {
 						msg += "\t" + ci[j].Product.Family.Title + "\t\t\t\t" + ci[j].Product.Price.ToString("C") + "\r\n";
 					}
 					msg += "\r\n"
-						+ "If you need to edit your Zirh Locker schedule, please set your changes before " + ot.Items[0].NextEstimatedShipDate.ToLongDateString() + ".\r\n\r\n"
-						+ "If we can be of service, please let us know. Our Customer Care Service Center can be reached by email at mylocker@zirh.com or by phone toll-free at 1-800-295-8877 (9AM - 6PM EST).\r\n\r\n"
-						+ "Zirh looks forward to helping you look, feel and BE your best.";
+						+ "If you need to edit your DepartmentZed Locker schedule, please set your changes before " + ot.Items[0].NextEstimatedShipDate.ToLongDateString() + ".\r\n\r\n"
+						+ "If we can be of service, please let us know. Our Customer Care Service Center can be reached by email at mylocker@example.com or by phone toll-free at 1-800-295-8877 (9AM - 6PM EST).\r\n\r\n"
+						+ "DepartmentZed looks forward to helping you look, feel and BE your best.";
 
 					string html = "<html><head></head><body>"
-						+ "<div>" + ot.User.FirstName + "'s Upcoming Zirh Locker Order</div>"
+						+ "<div>" + ot.User.FirstName + "'s Upcoming DepartmentZed Locker Order</div>"
 						+ "<div>Your order will ship approximately " + now.ToLongDateString() + ".</div>"
 						+ "<p>Your login name: " + ot.User.Username + "</p>"
 						+ "<div>Dear " + ot.User.FirstName + ",</div>"
-						+ "<p>This is just a quick reminder that your upcoming Zirh Locker order is scheduled to ship around " + now.ToLongDateString() + ". We hope you enjoy the convenience of keeping your virtual Locker at Zirh!</p>"
-						+ "<p>Scheduled Zirh Locker Items:</p>"
+						+ "<p>This is just a quick reminder that your upcoming DepartmentZed Locker order is scheduled to ship around " + now.ToLongDateString() + ". We hope you enjoy the convenience of keeping your virtual Locker at DepartmentZed!</p>"
+						+ "<p>Scheduled DepartmentZed Locker Items:</p>"
 						+ "<table cellpadding=\"2\" cellspacing=\"0\" border=\"0\">"
 						+ "<tr>"
 						+ "<td style=\"border-bottom:1px solid black;\"><b>Item</b></td>"
@@ -106,12 +106,12 @@ namespace Zirh.Automation {
 							+ "</tr>";
 					}
 					html += "</table>"
-						+ "<p>If you need to edit your Zirh Locker schedule, please set your changes before " + ot.Items[0].NextEstimatedShipDate.ToLongDateString() + ".</p>"
-						+ "<p>If we can be of service, please let us know. Our Customer Care Service Center can be reached by email at mylocker@zirh.com or by phone toll-free at 1-800-295-8877 (9AM - 6PM EST).</p>"
-						+ "<p>Zirh looks forward to helping you look, feel and BE your best.</p>";
+						+ "<p>If you need to edit your DepartmentZed Locker schedule, please set your changes before " + ot.Items[0].NextEstimatedShipDate.ToLongDateString() + ".</p>"
+						+ "<p>If we can be of service, please let us know. Our Customer Care Service Center can be reached by email at mylocker@example.com or by phone toll-free at 1-800-295-8877 (9AM - 6PM EST).</p>"
+						+ "<p>DepartmentZed looks forward to helping you look, feel and BE your best.</p>";
 
 					Utilities.SendMail(
-						"mylocker@zirh.com",
+						"mylocker@example.com",
 						ot.User.Username,
 						subject,
 						msg,

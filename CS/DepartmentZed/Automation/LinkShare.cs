@@ -4,9 +4,9 @@ using System.IO ;
 using System.Diagnostics;
 using DepartmentZed;
 using DepartmentZed.eCommerce;
-using Zirh.Data;
+using DepartmentZed.Data;
 
-namespace Zirh.Automation {
+namespace DepartmentZed.Automation {
 	public class LinkShare : IPackage {
 		private string delim = "\t" ;
 		private string backupPath = String.Empty;

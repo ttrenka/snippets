@@ -1,6 +1,6 @@
 using System;
 
-namespace Zirh.Automation {
+namespace DepartmentZed.Automation {
 	/// <summary>
 	/// Basic interface for this custom package namespace.
 	/// </summary>

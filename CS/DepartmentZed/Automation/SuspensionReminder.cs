@@ -3,7 +3,7 @@ using System.Data;
 using DepartmentZed;
 using DepartmentZed.eCommerce;
 
-namespace Zirh.Automation {
+namespace DepartmentZed.Automation {
 	public class SuspensionReminder : IPackage {
 		private string connectionString;
 
@@ -55,26 +55,26 @@ namespace Zirh.Automation {
 
 				string msg = "Login name: " + o.User.Username + "\r\n\r\n"
 					+ "Dear " + o.User.FirstName + ",\r\n\r\n"
-					+ "We just wanted to let you know that your personal Zirh Locker is still ready and waiting for you.\r\n\r\n"
+					+ "We just wanted to let you know that your personal DepartmentZed Locker is still ready and waiting for you.\r\n\r\n"
 					+ "To re-activate it, please click here:\r\n"
-					+ "http://www.zirh.com/locker.aspx\r\n\r\n "
-					+ "If we can be of service, just let us know. The Zirh Locker Service Center can be reached by email at mylocker@zirh.com or by phone toll-free at 1-800-295-8877 (9AM - 6PM EST).\r\n\r\n "
+					+ "http://www.example.com/locker.aspx\r\n\r\n "
+					+ "If we can be of service, just let us know. The DepartmentZed Locker Service Center can be reached by email at mylocker@example.com or by phone toll-free at 1-800-295-8877 (9AM - 6PM EST).\r\n\r\n "
 					+ "Best regards,\r\n"
-					+ "Zirh Locker Administrator" ;
+					+ "DepartmentZed Locker Administrator" ;
 				
 				string html = "<html><head></head><body>"
 					+ "<p>Login name: " + o.User.Username + "</p>"
 					+ "<p>Dear " + o.User.FirstName + ",</p>"
-					+ "<p>We just wanted to let you know that your personal Zirh Locker is still ready and waiting for you.</p>"
+					+ "<p>We just wanted to let you know that your personal DepartmentZed Locker is still ready and waiting for you.</p>"
 					+ "<p>To re-activate it, please click here:<br/>"
-					+ "<p><a href=\"http://www.zirh.com/locker.aspx\">http://www.zirh.com/locker.aspx</a></p> "
-					+ "<p>If we can be of service, just let us know. The Zirh Locker Service Center can be reached by email at mylocker@zirh.com or by phone toll-free at 1-800-295-8877 (9AM - 6PM EST).</p> "
+					+ "<p><a href=\"http://www.example.com/locker.aspx\">http://www.example.com/locker.aspx</a></p> "
+					+ "<p>If we can be of service, just let us know. The DepartmentZed Locker Service Center can be reached by email at mylocker@example.com or by phone toll-free at 1-800-295-8877 (9AM - 6PM EST).</p> "
 					+ "<p>Best regards,<br/>"
-					+ "Zirh Locker Administrator</p>"
+					+ "DepartmentZed Locker Administrator</p>"
 					+ "</body></html>";
 
 				Utilities.SendMail(
-					"mylocker@zirh.com",
+					"mylocker@example.com",
 					o.User.Username,
 					subject,
 					msg,

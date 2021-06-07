@@ -4,11 +4,11 @@ using System.Data.SqlClient;
 using System.Text;
 using DepartmentZed;
 
-namespace Zirh.Automation {
+namespace DepartmentZed.Automation {
 	public class HowToUse : IPackage {
-		private string from = "how-to-use@zirh.com" ;
-		private string subject = "How to use your new ZIRH products" ;
-		private string msgIntro = "As a service to our customers, we like to provide instructions on how to use your new ZIRH products..." ;
+		private string from = "how-to-use@example.com" ;
+		private string subject = "How to use your new DepartmentZed products" ;
+		private string msgIntro = "As a service to our customers, we like to provide instructions on how to use your new DepartmentZed products..." ;
 		private string connectionString = "" ;
 
 		public HowToUse() : this("") {}

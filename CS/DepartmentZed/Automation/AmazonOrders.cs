@@ -7,9 +7,9 @@ using System.Text ;
 using System.Xml ;
 using DepartmentZed;
 using DepartmentZed.eCommerce;
-using Zirh.Data;
+using DepartmentZed.Data;
 
-namespace Zirh.Automation {
+namespace DepartmentZed.Automation {
 	public sealed class AmazonReportTypes {
 		public static readonly string OrdersData = "_GET_FLAT_FILE_ORDERS_DATA_" ; 
 		public static readonly string PaymentSettlementData = "_GET_FLAT_FILE_PAYMENT_SETTLEMENT_DATA_" ;
@@ -154,7 +154,7 @@ namespace Zirh.Automation {
 					+ "Data transmitted from Amazon:\r\n--------------------------------\r\n"
 					+ data + "\r\n\r\n"
 					+ "This document was NOT acknowledged in the Amazon system.";
-				Utilities.SendMail("support@zirh.com", "rkenney@zirh.com","Error within Amazon order import, " + DateTime.Now.ToString(), message);
+				Utilities.SendMail("support@example.com", "rkenney@example.com","Error within Amazon order import, " + DateTime.Now.ToString(), message);
 				Utilities.SaveEmails = false;
 			}
 		}
@@ -307,7 +307,7 @@ namespace Zirh.Automation {
 				+ " 1,"
 				+ "	GETDATE(), "
 				+ "	'Amazon Orders Automated Task', "
-				+ "	'Order created in system by ZIRH TaskManager.' "
+				+ "	'Order created in system by DepartmentZed TaskManager.' "
 				+ "FROM atAmazon" ;
 			Utilities.ExecuteNonQuery(sql, connectionString);
 
@@ -316,7 +316,7 @@ namespace Zirh.Automation {
 				+ "	usrOrder, "
 				+ "	'N', "
 				+ "	GETDATE(), "
-				+ "	'Posted by ZIRH TaskManager from Amazon.com' "
+				+ "	'Posted by DepartmentZed TaskManager from Amazon.com' "
 				+ "FROM atAmazon" ;
 			Utilities.ExecuteNonQuery(sql, connectionString);
 

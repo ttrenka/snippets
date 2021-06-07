@@ -7,7 +7,7 @@ using System.Text ;
 using DepartmentZed;
 using DepartmentZed.eCommerce;
 
-namespace Zirh.Automation {
+namespace DepartmentZed.Automation {
 	public class AmazonUploadTypes {
 		public static string FulfillmentData = "_POST_FLAT_FILE_FULFILLMENT_DATA_" ;
 	}
@@ -127,7 +127,7 @@ namespace Zirh.Automation {
 					+ keys[i] + ","
 					+ "'" + OrderStatuses.Confirmed + "', "
 					+ "GetDate(),"
-					+ "'Confirmation posted to Amazon by ZIRH TaskManager.'"
+					+ "'Confirmation posted to Amazon by DepartmentZed TaskManager.'"
 					+ ")";
 				Utilities.ExecuteNonQuery(sql, connectionString);
 			}
