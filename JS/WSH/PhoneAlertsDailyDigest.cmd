@@ -1,2 +1,2 @@
 ::For convenience
-@cscript //nologo //D "%~dp0scripts/Marchex/MarchexAlertsDailyDigest.wsf" %*
+@cscript //nologo //D "%~dp0scripts/Phone/PhoneAlertsDailyDigest.wsf" %*
