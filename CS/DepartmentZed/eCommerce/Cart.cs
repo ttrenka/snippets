@@ -1,7 +1,7 @@
 using System;
 using System.Data;
 using DepartmentZed;
-using Zirh.Data;
+using DepartmentZed.Data;
 
 namespace DepartmentZed.eCommerce {
 	public class Cart {

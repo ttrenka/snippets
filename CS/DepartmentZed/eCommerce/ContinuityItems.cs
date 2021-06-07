@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using Zirh.Data;
+using DepartmentZeDepartmentZed.Data;
 
 namespace DepartmentZed.eCommerce {
     #region Interface IContinuityItemCollection

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Data;
 using System.IO;
 using DepartmentZed;
-using Zirh.Data;
+using DepartmentZed.Data;
 
 namespace DepartmentZed.eCommerce {
 	public sealed class PromotionTypes {

@@ -1,7 +1,7 @@
 using System;
 using System.Data;
 using DepartmentZed;
-using Zirh.Data;
+using DepartmentZed.Data;
 
 namespace DepartmentZed.eCommerce {
 	public sealed class OrderTypes {
@@ -444,7 +444,7 @@ namespace DepartmentZed.eCommerce {
 					int gprd = (int)row["GiftWrapProduct"];
 					giftWrap = new CartItem(
 						1, 
-						Zirh.Data.Catalog.Products.GetByKey(gprd)
+						DepartmentZed.Data.Catalog.Products.GetByKey(gprd)
 					);
 				}
 				

@@ -112,7 +112,7 @@ namespace DepartmentZed.eCommerce {
 					items.Add(
 						new CartItem(
 							1,
-							Zirh.Data.Catalog.Products.GetByKey(Convert.ToInt32(rows[i]["prdMaster"]))
+							DepartmentZed.Data.Catalog.Products.GetByKey(Convert.ToInt32(rows[i]["prdMaster"]))
 						)
 					);
 				}

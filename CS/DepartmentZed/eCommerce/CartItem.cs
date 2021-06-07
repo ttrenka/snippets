@@ -1,6 +1,6 @@
 using System;
 using System.Data;
-using Zirh.Data;
+using DepartmentZed.Data;
 
 namespace DepartmentZed.eCommerce {
 	public class CartItem {
