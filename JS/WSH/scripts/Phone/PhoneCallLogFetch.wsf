@@ -4,7 +4,7 @@
 <script language="jscript" src="../../renderer/CsvRenderer.js" />
 <script language="jscript">
 /***********************************************************************
- *	Marchex Call Log Fetch
+ *	Phone Call Log Fetch
  *
  *	TRT 20161007
  *	v.1.0.0
@@ -14,7 +14,7 @@
  *	Get yesterday's phone call log (just like we do manually with the
  *	morning imports).
  ***********************************************************************/
-var c = Core, console = new c.log(config.logPath + "Marchex\\MarchexCallLogFetch");
+var c = Core, console = new c.log(config.logPath + "Phone\\PhonexCallLogFetch");
 
 //	FOR DAILY PULLS
 var t = new Date();
@@ -102,10 +102,10 @@ var search = {
 var _start = new Date();
 
 //	permissions to access the JSON-RPC API
-var user = config.marchexUser,
-	pwd = config.marchexPwd;
+var user = config.phoneUser,
+	pwd = config.phonePwd;
 var args = {
-	url: "https://api.marchex.io/api/jsonrpc/1",
+	url: "https://api.examplephone.io/api/jsonrpc/1",
 	data: c.json.serialize(search),
 	headers: {
 		"Content-Type": "application/json"
@@ -135,7 +135,7 @@ var args = {
 		var str = tr.render(d);
 
 //		c.write(config.csvPath + "clients_calls_log_" + filedate + ".csv", str);
-		c.write("d:\\ftp\\002_networkImports\\Marchex\\client_calls_log.csv", str);
+		c.write("d:\\ftp\\002_networkImports\\Phone\\client_calls_log.csv", str);
 		c.print("Run time was " + ((new Date().valueOf() - _start.valueOf()) / 1000) + "s");
 	},
 	"error": function(err, http){

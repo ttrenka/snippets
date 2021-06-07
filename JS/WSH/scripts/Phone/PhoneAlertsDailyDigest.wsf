@@ -3,7 +3,7 @@
 <script language="jscript" src="../../core/core.js" />
 <script language="jscript">
 /***********************************************************************
- *	Marchex Alerts Daily Digest emails
+ *	Phone Alerts Daily Digest emails
  *
  *	TRT 20161213
  *	v.1.0.0
@@ -13,7 +13,7 @@
  *	Comb through yesterday's alerts log, and assemble and email for any
  *	person who requested a listing of certain campaigns/programs.
  ***********************************************************************/
-var c = Core, console = new c.log(config.logPath + "Marchex\\MarchexAlertsDailyDigest");
+var c = Core, console = new c.log(config.logPath + "Phone\\PhoneAlertsDailyDigest");
 c.enableLogging = true;
 
 

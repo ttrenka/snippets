@@ -3,7 +3,7 @@
 <script language="jscript" src="../../core/core.js" />
 <script language="jscript" src="../../renderer/TabRenderer.js" />
 <script language="jscript">
-var c = Core, console = new c.log(config.logPath + "Marchex\\MarchexRewriteFetch");
+var c = Core, console = new c.log(config.logPath + "Phone\\PhoneRewriteFetch");
 
 /*
 //	FOR HOURLY PULLS

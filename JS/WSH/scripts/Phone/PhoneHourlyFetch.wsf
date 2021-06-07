@@ -4,18 +4,18 @@
 <script language="jscript" src="../../renderer/CsvRenderer.js" />
 <script language="jscript">
 /***********************************************************************
- *	Marchex Hourly Fetch
+ *	Phone Hourly Fetch
  *
  *	TRT 20160802
  *	v.1.0.0
  *
  *	PURPOSE:
- *	Get the last hour's worth of Marchex data and push into the 
+ *	Get the last hour's worth of Phone data and push into the 
  *	database; then assemble and email any alerts for phone calls
  *	that are out of range, based on the severity level asked for
  *	by a user.
  ***********************************************************************/
-var c = Core, console = new c.log(config.logPath + "Marchex\\MarchexHourlyFetch");
+var c = Core, console = new c.log(config.logPath + "Phone\\PhoneHourlyFetch");
 
 //	Don't write stuff out in unicode
 c.writeUnicode = true;
@@ -38,7 +38,7 @@ c.print("The hour being fetched is " + start + " - " + end);
 
 //	inline templates to be used to generate data.
 var reVars = /\$\{([^\s\}]+)?\}/g, 
-	groupTmpl = '<tr><td><div class="program-info"><strong>[c${campaign_id}] ${campaign_name}</strong></div>@{MarchexAlerts/SubGroup}</td></tr>',
+	groupTmpl = '<tr><td><div class="program-info"><strong>[c${campaign_id}] ${campaign_name}</strong></div>@{PhoneAlerts/SubGroup}</td></tr>',
 	subGroupTmpl = '<table width="100%"><tr><td width="16">&nbsp;</td>'
 		+ '<td>${phone_number}</td>'
 		+ '<td>${phone_label}</td>'
@@ -47,8 +47,8 @@ var reVars = /\$\{([^\s\}]+)?\}/g,
 		+ '<td align="center">${range}</td>'
 		+ '</tr></table>';
 var templates = {
-	"MarchexAlerts/AlertGroup": groupTmpl,
-	"MarchexAlerts/SubGroup": subGroupTmpl
+	"PhoneAlerts/AlertGroup": groupTmpl,
+	"PhoneAlerts/SubGroup": subGroupTmpl
 };
 
 //	template functions (TODO: perhaps move this to Core at some point)
@@ -208,7 +208,7 @@ function processData(){
 
 function findAlerts(current){
 	//	the money shot one.  We grab existing data from callData, do all our processing on it, and
-	//	then compare the last data points from each to what we got from Marchex.
+	//	then compare the last data points from each to what we got from Phone.
 
 	//	set up variables for our ranges
 	var maRange = 26, sdFactor = 2, minLength = 6, threshold = 4;
@@ -579,13 +579,13 @@ function sendAlerts(alerts){
 		var o = {
 			campaign_id: id,
 			campaign_name: name,
-			"MarchexAlerts/SubGroup": []
+			"PhoneAlerts/SubGroup": []
 		};
 		for(var phone in na[campaign].phone){
 			var pn = phone;
 			pn = pn.indexOf("+") == 0 ? pn : "(" + pn.slice(0,3) + ") " + pn.slice(3, 6) + "-" + pn.slice(-4);
 			var range = c.format.num(na[campaign].phone[phone].max, 3);
-			o["MarchexAlerts/SubGroup"].push({
+			o["PhoneAlerts/SubGroup"].push({
 				phone_number: pn,
 				phone_label: na[campaign].phone[phone].label,
 				severity_type: na[campaign].phone[phone].type,
@@ -600,8 +600,8 @@ function sendAlerts(alerts){
 		reportDate: reportDate,
 		data: a
 	};
-	assembleEmail("admin@aimediagroup.com", d);
-	assembleEmail("notices@aimediagroup.com", d);
+	assembleEmail("admin@example.com", d);
+	assembleEmail("notices@example.com", d);
 
 	//	Now do it for individual users
 	var users = {};
@@ -618,13 +618,13 @@ function sendAlerts(alerts){
 		var o = {
 			campaign_id: cp_id,
 			campaign_name: campaign.name,
-			"MarchexAlerts/SubGroup": []
+			"PhoneAlerts/SubGroup": []
 		};
 		for(var phone in campaign.phone){
 			var pn = phone;
 			pn = pn.indexOf("+") == 0 ? pn : "(" + pn.slice(0,3) + ") " + pn.slice(3, 6) + "-" + pn.slice(-4);
 			var range = c.format.num(campaign.phone[phone].max, 3);
-			o["MarchexAlerts/SubGroup"].push({
+			o["PhoneAlerts/SubGroup"].push({
 				phone_number: pn,
 				phone_label: campaign.phone[phone].label,
 				severity_type: campaign.phone[phone].type,
@@ -649,38 +649,38 @@ function assembleEmail(user, d){
 		//	OK, go load and assemble our templates.  For testing purposes, we'll write the 
 		//	result to disc.
 	var data = {
-		email_title: "AiTRK Phone Alerts for " + d.reportDate,
+		email_title: "Phone Alerts for " + d.reportDate,
 		report_date: d.reportDate,
-		"MarchexAlerts/AlertGroup": d.data
+		"PhoneAlerts/AlertGroup": d.data
 	};
 
-	var tmpl = c.read((""+ config.templatePath) + "MarchexHourlyFetch.tmpl");
+	var tmpl = c.read((""+ config.templatePath) + "PhoneHourlyFetch.tmpl");
 	
 	//	ok, we got our main template, let's render it manually.
-	var group = templates["MarchexAlerts/AlertGroup"], subgroup = templates["MarchexAlerts/SubGroup"];
+	var group = templates["PhoneAlerts/AlertGroup"], subgroup = templates["PhoneAlerts/SubGroup"];
 	var rows = [];
-	for(var i=0, l=data["MarchexAlerts/AlertGroup"].length; i<l; i++){
-		var item = data["MarchexAlerts/AlertGroup"][i], row = group + "";
+	for(var i=0, l=data["PhoneAlerts/AlertGroup"].length; i<l; i++){
+		var item = data["PhoneAlerts/AlertGroup"][i], row = group + "";
 		row = renderTemplate(row, item);
 
 		//	the sub groups
 		var subrows = [];
-		for(var j=0, jl=item["MarchexAlerts/SubGroup"].length; j<jl; j++){
-			var subItem = item["MarchexAlerts/SubGroup"][j], subrow = subgroup + "";
+		for(var j=0, jl=item["PhoneAlerts/SubGroup"].length; j<jl; j++){
+			var subItem = item["PhoneAlerts/SubGroup"][j], subrow = subgroup + "";
 			subrows.push(renderTemplate(subrow, subItem));
 		}
-		rows.push(row.replace("@{MarchexAlerts/SubGroup}", subrows.join("\n")));
+		rows.push(row.replace("@{PhoneAlerts/SubGroup}", subrows.join("\n")));
 	}
 
 	//	final result
-	var output = tmpl.replace("@{MarchexAlerts/AlertGroup}", rows.join("\n"));
+	var output = tmpl.replace("@{PhoneAlerts/AlertGroup}", rows.join("\n"));
 	output = renderTemplate(output, data);
 
-	c.write(config.csvPath + "MarchexEmail_" + new Date().valueOf() + ".html", output);
+	c.write(config.csvPath + "PhoneEmail_" + new Date().valueOf() + ".html", output);
 
 	//	assemble and send out the email
 	var params = {
-		from: "reports@aimediagroup.com",
+		from: "reports@example.com",
 		to: user,
 		subject: data.email_title,
 		html: output

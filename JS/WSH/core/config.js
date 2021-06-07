@@ -12,9 +12,9 @@ config={
 	smtpServer: "localhost",
 	smtpUsername: "",
 	smtpPassword: "",
-	marchexAccount: "QrOX7EYiRfcYywDD",
-	marchexUser: "ai-api@example.com",
-	marchexPwd: "example42",
+	phoneAccount: "QrOX7EYiRfcYywDD",
+	phoneUser: "ai-api@example.com",
+	phonePwd: "example42",
 	logPath: basePath + "logs\\",
 	csvPath: basePath + "csv\\",
 	templatePath: basePath + "templates\\"
