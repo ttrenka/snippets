@@ -12,11 +12,10 @@ Fortunately, Adobe asked us to open-source the codebase (no longer available as 
 hosted it on the now-defunct Google Code), so I can talk about it without fear of legal reprisal ;) Also
 fortunately, most of the teammates on the project wrote a series of blog posts about the whole process:
 
-https://www.sitepen.com/blog/queued
-https://www.sitepen.com/blog/queued-overviewed
-https://www.sitepen.com/blog/queued-visualizing-the-queue
-https://www.sitepen.com/blog/architecting-queued
-https://www.sitepen.com/blog/queued-and-air-issues-part-i
-https://www.sitepen.com/blog/queued-theming
-https://www.sitepen.com/blog/queued-and-air-issues-part-ii
+* https://www.sitepen.com/blog/queued-overviewed
+* https://www.sitepen.com/blog/queued-visualizing-the-queue
+* https://www.sitepen.com/blog/architecting-queued
+* https://www.sitepen.com/blog/queued-and-air-issues-part-i
+* https://www.sitepen.com/blog/queued-theming
+* https://www.sitepen.com/blog/queued-and-air-issues-part-ii
 
