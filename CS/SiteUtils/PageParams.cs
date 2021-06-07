@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 
-namespace Aimedia {
+namespace SiteUtils {
 	public class PageParams {
 		public PageParams(){
 			UserId = 0;

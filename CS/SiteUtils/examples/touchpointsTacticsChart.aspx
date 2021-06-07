@@ -1,12 +1,12 @@
 <%@ Page language="C#" AutoEventWireup="false" Debug="true" %>
 <%@ Import namespace="System.Collections.Generic" %>
-<%@ Import namespace="Aimedia" %>
+<%@ Import namespace="SiteUtils" %>
 
 <%
 	Response.ContentType = "application/json; charset=iso-8859-1";
 
 	//	Check the user access first
-	Aimedia.User user = (Aimedia.User)Session["user"];
+	SiteUtils.User user = (SiteUtils.User)Session["user"];
 	if(user == null){
 		Dictionary<String, Object> inv = new Dictionary<String, Object>();
 		AiError invalidUser = new AiError(1, "Invalid user", "Your session has expired, please log in again.");
@@ -26,9 +26,9 @@
 	}
 
 	try {
-		Aimedia.Branding branding = (Aimedia.Branding)Session["branding"];
+		SiteUtils.Branding branding = (SiteUtils.Branding)Session["branding"];
 
-		//	for debugging purposes. We need to pass this to any Aimedia.Console[methods] as the second arg.
+		//	for debugging purposes. We need to pass this to any SiteUtils.Console[methods] as the second arg.
 		List<Dictionary<string, object>> messages = new List<Dictionary<string, object>>();
 
 		//	Parse out the query string/form variables
@@ -66,13 +66,13 @@
 		List<Dictionary<String, Object>> rs = Utilities.FetchDataRaw((String)Application["cn"], sql, p, 300);
 		ret.Add("items", rs);
 
-		Aimedia.Console.Log("Page execution: " + (DateTime.Now - _start), messages);
-		Aimedia.Console.Log("Record count: " + rs.Count, messages);
-		Aimedia.Console.Log(p, messages);												//	parameters used for both SQL statements
-		Aimedia.Console.Log(sql, messages);												//	first SQL statement
+		SiteUtils.Console.Log("Page execution: " + (DateTime.Now - _start), messages);
+		SiteUtils.Console.Log("Record count: " + rs.Count, messages);
+		SiteUtils.Console.Log(p, messages);												//	parameters used for both SQL statements
+		SiteUtils.Console.Log(sql, messages);												//	first SQL statement
 
 		if(user.hasConsole){
-			ret.Add("console", Aimedia.Console.Flush("srv/cards/touchpointsTacticsChart.aspx", messages));
+			ret.Add("console", SiteUtils.Console.Flush("srv/cards/touchpointsTacticsChart.aspx", messages));
 		}
 
 		//	Encode as JSON and send it out

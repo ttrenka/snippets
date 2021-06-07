@@ -1,12 +1,12 @@
 <%@ Page language="C#" AutoEventWireup="false" Debug="true" %>
 <%@ Import namespace="System.Collections.Generic" %>
-<%@ Import namespace="Aimedia" %>
+<%@ Import namespace="SIteUtils" %>
 
 <%
 	Response.ContentType = "application/json; charset=iso-8859-1";
 
 	//	Check the user access first
-	Aimedia.User user = (Aimedia.User)Session["user"];
+	SIteUtils.User user = (SIteUtils.User)Session["user"];
 	if(!user.isEmployee){
 		Dictionary<String, Object> err = new Dictionary<String, Object>();
 		err.Add("error", "Access denied");
@@ -14,9 +14,9 @@
 		Response.End();
 	}
 
-	Aimedia.Branding branding = (Aimedia.Branding)Session["branding"];
+	SIteUtils.Branding branding = (SIteUtils.Branding)Session["branding"];
 
-	//	for debugging purposes. We need to pass this to any Aimedia.Console[methods] as the second arg.
+	//	for debugging purposes. We need to pass this to any SIteUtils.Console[methods] as the second arg.
 	List<Dictionary<string, object>> messages = new List<Dictionary<string, object>>();
 
 	//	Parse out the query string/form variables
@@ -59,13 +59,13 @@
 	}
 	ret.Add("items", rs);
 
-	Aimedia.Console.Log("Page execution: " + (DateTime.Now - _start), messages);
-	Aimedia.Console.Log("Record count: " + rs.Count, messages);
-	Aimedia.Console.Log(p, messages);												//	parameters used for both SQL statements
-	Aimedia.Console.Log(sql, messages);												//	first SQL statement
+	SIteUtils.Console.Log("Page execution: " + (DateTime.Now - _start), messages);
+	SIteUtils.Console.Log("Record count: " + rs.Count, messages);
+	SIteUtils.Console.Log(p, messages);												//	parameters used for both SQL statements
+	SIteUtils.Console.Log(sql, messages);												//	first SQL statement
 
 	if(user.hasConsole){
-		ret.Add("console", Aimedia.Console.Flush("srv/cards/networkAdActivityByDay.aspx", messages));
+		ret.Add("console", SIteUtils.Console.Flush("srv/cards/networkAdActivityByDay.aspx", messages));
 	}
 
 	//	Encode as JSON and send it out

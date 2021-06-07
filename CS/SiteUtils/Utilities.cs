@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using System.Data.SqlClient;
 using System.Text;
 
-namespace Aimedia {
+namespace SiteUtils {
     public class Utilities {
-        private static string connectionString = "Server=172.16.2.10;User Id=aimg_db;Password=tas4284;Database=AiMG_systems;";
+        private static string connectionString = "Server=Server_Alias;User Id=db_user;Password=db_pwd;Database=db_name;";
         public static string ConnectionString { get => connectionString; set => connectionString = value; }
 
         public static List<String> FetchDataTsv(string cn, string sql){

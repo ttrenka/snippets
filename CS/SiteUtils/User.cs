@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-// using Aimedia;
-
-/// <summary>
-/// Summary description for Class1
-/// </summary>
-namespace Aimedia {
+namespace SiteUtils {
     public class User {
         public User(){
             //  initialize a blank user, so do nothing
@@ -128,7 +123,7 @@ namespace Aimedia {
                     }
 
                     //  do the roles
-                    Role r = Aimedia.Roles.FindRole((string)row["role_title"]);
+                    Role r = SiteUtils.Roles.FindRole((string)row["role_title"]);
                     if(r != null){
                         roles.Add(r);
                         if(r.AccountType < 4){

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Aimedia {
+namespace SiteUtils {
 	public static class Console {
 //		private static List<Dictionary<string, object>> messages = new List<Dictionary<string, object>>();
 
