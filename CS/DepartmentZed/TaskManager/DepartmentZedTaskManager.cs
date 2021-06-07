@@ -1,12 +1,12 @@
 using System;
 using System.Text;
 using System.Configuration;
-using Zirh.Automation;
+using DepartmentZed.Automation;
 using DepartmentZed.eCommerce;
 using OpenSmtp.Mail;
 
-namespace Zirh.TaskManager {
-	class ZIRHTaskManager {
+namespace DepartmentZed.TaskManager {
+	class DepartmentZedTaskManager {
 		[STAThread]
 		static void Main(string[] args)	{
 			/*
