@@ -1,22 +1,22 @@
 <%
 /***************************************
- Default Skyline Production Settings
+ Default Example Production Settings
 ***************************************/
 
 // database settings
-cwrConfig.connectionString = "Provider=sqloledb;Network Library=DBMSSOCN;Data Source=sqlserv01,1433;Initial Catalog=skynet;User ID=skylineweb;Password=wiLLi@ms406;Connect Timeout=5";
+cwrConfig.connectionString = "Provider=sqloledb;Network Library=DBMSSOCN;Data Source=sqlserv01,1433;Initial Catalog=skynet;User ID=skyuser;Password=skypwd;Connect Timeout=5";
 
 // dojo settings
 cwrConfig.dojoBuildDir = "js-frontend";
-cwrConfig.dojoBuildSkylineDir = "js-frontend";
+cwrConfig.dojoBuildExampleDir = "js-frontend";
 cwrConfig.dojoDir = "dojo-1.3.2";
 
 cwrConfig.dojoAdminBuildDir = "js-admin";
-cwrConfig.dojoAdminBuildSkylineDir = "js-admin";
+cwrConfig.dojoAdminBuildExampleDir = "js-admin";
 cwrConfig.dojoAdminDir = "dojo-1.3.2";
 
-// skyline specific settings
-cwrConfig.allowedFileExtensionsSkylineAdmins = "txt,html,htm,xml,js,swf,pdf,jpg,png,gif,bmp,doc,docx,xls,xlsx,ppt,pptx,wmv,mov,mpg,mpeg,mp3,mp4,zip";
+// Exa,ple specific settings
+cwrConfig.allowedFileExtensionsExampleAdmins = "txt,html,htm,xml,js,swf,pdf,jpg,png,gif,bmp,doc,docx,xls,xlsx,ppt,pptx,wmv,mov,mpg,mpeg,mp3,mp4,zip";
 cwrConfig.allowedFileExtensionsDealers = "txt,html,htm,xml,js,swf,pdf,jpg,png,gif,bmp,doc,docx,xls,xlsx,ppt,pptx,wmv,mov,mpg,mpeg,mp3,mp4,zip";
 cwrConfig.enableDealerLookupForDealerSites = false;
 
@@ -24,7 +24,7 @@ cwrConfig.enableDealerLookupForDealerSites = false;
 cwrConfig.enableOmniture = true;
 
 // email settings
-cwrConfig.systemEmail = "\"Skyline System\" <maildaemon@skyline.com>";
+cwrConfig.systemEmail = "\"Example System\" <maildaemon@example.com>";
 cwrConfig.isRemoteSmtp = false;
 cwrConfig.smtpPort = 24;
 cwrConfig.smtpConnectionTimeout = 30;
@@ -41,15 +41,15 @@ cwrConfig.debugIPs = []; //"127.0.0.1"
 cwrConfig.bypassCache = false;
 
 // domain settings
-cwrConfig.defaultDomain = "www.skyline.com";
+cwrConfig.defaultDomain = "www.example.com";
 cwrConfig.staticDomains = [
-	"static1.skyline.com",
-	"static2.skyline.com",
-	"static3.skyline.com"
+	"static1.example.com",
+	"static2.example.com",
+	"static3.example.com"
 ];
 
 cwrConfig.secureProtocol = "https";
-cwrConfig.secureHostName = "secure.skyline.com";
+cwrConfig.secureHostName = "secure.example.com";
 cwrConfig.secureGoogleMapKey = "ABQIAAAAHVq45KcxwmUMcVumGF3bFhROC8Wg9V4WlDsNlKYF3c0Ko14YvxSX_RYLODHz3xr3fPwXew8fWxxskw";
 
 cwrConfig.enableChromeFrame = true;
@@ -62,17 +62,16 @@ switch(String(Request.ServerVariables("SERVER_NAME"))){
 	// Chris's VM
 	case "midwest.localhost":
 	case "iowa.localhost":
-	case "skyline.localhost":
+	case "example.localhost":
 	case "secure.localhost":
-	//case "www.skyline.ca":
-		cwrConfig.connectionString = "Provider=sqloledb;Network Library=DBMSSOCN;Data Source=localhost,1433;Initial Catalog=skynet;User ID=skylineweb;Password=skyline;Connect Timeout=5";
+		cwrConfig.connectionString = "Provider=sqloledb;Network Library=DBMSSOCN;Data Source=localhost,1433;Initial Catalog=skynet;User ID=skyuser;Password=skypwd;Connect Timeout=5";
 
 		cwrConfig.dojoBuildDir = "js-frontend";
-		cwrConfig.dojoBuildSkylineDir = "js-frontend";
+		cwrConfig.dojoBuildExampleDir = "js-frontend";
 		cwrConfig.dojoDir = "dojo-1.3.2";
 
 		cwrConfig.dojoAdminBuildDir = "js-dev"; // js-dev
-		cwrConfig.dojoAdminBuildSkylineDir = "js"; // js
+		cwrConfig.dojoAdminBuildExampleDir = "js"; // js
 		cwrConfig.dojoAdminDir = "dojo-1.3.2";
 
 		cwrConfig.enableOmniture = false;
@@ -82,7 +81,7 @@ switch(String(Request.ServerVariables("SERVER_NAME"))){
 		//cwrConfig.debugIPs = [];
 		//cwrConfig.bypassCache = true;
 
-		cwrConfig.defaultDomain = "skyline.localhost";
+		cwrConfig.defaultDomain = "example.localhost";
 		cwrConfig.staticDomains = [
 			"static1.localhost",
 			"static2.localhost",
