@@ -1,4 +1,4 @@
-#Various Standalone microlibraries
+# Various Standalone microlibraries
 This space will be used to house various utilities I've written over the years using JScript for Classic ASP.
 Each snippet will be explained below.
 
