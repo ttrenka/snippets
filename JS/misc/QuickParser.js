@@ -1,8 +1,3 @@
-dojo.provide("iwc.util.QuickParser");
-
-dojo.require("dojo.date.locale");
-dojo.require("iwc.util.timezones");
-
 /**
 	A note about 118n (internationalization).
 
@@ -23,12 +18,12 @@ dojo.require("iwc.util.timezones");
 	1. Define the dictionary as a single object; make sure that any functions
 		defined conform to the same signature as the dictionary below.
 	2. Pass a reference to the localized dictionary to the single "parse" method, like so:
-		var evtObject = iwc.util.QuickParser.parse(str, contextDate, myDictionary);
+		var evtObject = QuickParser.parse(str, contextDate, myDictionary);
 
 	myDictionary will be mixed into the default dictionary.
 **/
  
-iwc.util.QuickParser=new (function(){
+QuickParser=new (function(){
 	//	the default object to be used for quick parsing: in English.  Other dictionaries
 	//		will be mixed into a clone of this one as fallback.
 	var _dictionary = {
@@ -54,7 +49,7 @@ iwc.util.QuickParser=new (function(){
 		reInvitees: /[a-z0-9!#$%\&'\*\+\/\=\?\^_`\{\|\}~-]+(?:\.[a-z0-9!#$%\&'\*\+\/\=\?\^_`\{\|\}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|museum)\b/gi,
 
 		//	expression that will be built based on TZ information returned from the Calendar server
-		reTimezones: null,
+		reTimezones: new RegExp(""),	//	just so it doesn't break
 
 		//	pull out any extra spaces
 		reNormalize: /\s+/g,
@@ -536,7 +531,7 @@ iwc.util.QuickParser=new (function(){
 					||isNaN(parseInt(dta[0],10))
 					||isNaN(parseInt(dta[1],10))
 				){
-					throw new Error("iwc.util.QuickParser: the string passed ('"+str+"') is not a parsable date.");
+					throw new Error("QuickParser: the string passed ('"+str+"') is not a parsable date.");
 				}
 				
 				for(var i=0, l=order.length; i<l; i++){
@@ -584,7 +579,7 @@ iwc.util.QuickParser=new (function(){
 			}
 
 			//	if we got here, something ain't right.
-			throw new Error("iwc.util.QuickParser: the string passed ('" + str + "') is not a parseable date.");
+			throw new Error("QuickParser: the string passed ('" + str + "') is not a parseable date.");
 		},
 
 		parseTime: function(str, dict){
@@ -632,11 +627,12 @@ iwc.util.QuickParser=new (function(){
 		 return new RegExp(a.join("|"), "gi");
 	})(_dictionary);
 
-	//	connect our tz builder to iwc.util.getTimeZones
-	if(!iwc.util.getTimeZoneNameMap){
-		var h=dojo.connect(iwc.util, "getTimeZones", function(){
+	/*
+	//	connect our tz builder to a getTimeZones function (not included)
+	if(!getTimeZoneNameMap){
+		var h=dojo.connect(null, "getTimeZones", function(){
 			dojo.disconnect(h);
-			var tz=iwc.util.getTimeZoneNameMap(), t=[];
+			var tz=getTimeZoneNameMap(), t=[];
 			for(var p in tz){ t.push(p); }
 			t.sort(function(a, b){ 
 				if(a.length>b.length) return -1; 
@@ -648,6 +644,7 @@ iwc.util.QuickParser=new (function(){
 			_dictionary.reTimezones = new RegExp("\\s+("+t.join("|")+")", "gi");
 		});
 	}
+	*/
 
 	//////////////////////////////////////////////////////////////////
 	//	Utility functions
@@ -898,16 +895,17 @@ iwc.util.QuickParser=new (function(){
 	}
 
 	//	figure out the time zone.
+	/*
 	var _timezone=function(obj, dict, context){
 		var tzid=0, tzalias="", tzdaylight=false;
 		var a=obj._phrase.match(dict.reTimezones)||[];
 		if(a.length){
 			//	only interested in the first one.
 			var tzname=a[0];
-			var item=(iwc.util.getTimeZoneNameMap())[tzname.toUpperCase()];
+			var item=(getTimeZoneNameMap())[tzname.toUpperCase()];
 
 			//	look for the continent we are on with the default tzid
-			var defRegion=(iwc.supportedServices.calendar.timezone||iwc.userPrefs.general.timezone).split("/")[0];
+			var defRegion=(calendar.timezone||general.timezone).split("/")[0];
 			var region=item.regions[defRegion];
 			if(!region){
 				//	grab the first one, call it good.
@@ -939,13 +937,14 @@ iwc.util.QuickParser=new (function(){
 			isDaylight: tzdaylight
 		};
 	}
+	*/
 
 	//	the main function.  If you need to pass a dictionary without passing a context date, make sure
 	//		you pass "null" as the second argument, i.e.:
-	//	var eventObject = iwc.util.QuickParser.parse(str, null, myDictionary);
+	//	var eventObject = QuickParser.parse(str, null, myDictionary);
 	this.parse=function(str, dt, dict){
 		//	force the timezone load if it's not there already
-		if(!_dictionary.reTimezones){ iwc.util.getTimeZones(); }
+		if(!_dictionary.reTimezones){ getTimeZones(); }
 
 		//	something is odd with dojo.clone on the dictionary.
 		dt=dt||new Date();
@@ -972,7 +971,7 @@ iwc.util.QuickParser=new (function(){
 			_punctuation,
 			_tokenize,
 			_invitees,
-			_timezone,
+			//	_timezone,
 			_dtsub,
 			_dowsub,
 			_dates,
@@ -989,7 +988,7 @@ iwc.util.QuickParser=new (function(){
 				_punctuation,
 				_tokenize,
 				_invitees,
-				_timezone,
+				// _timezone,
 				_times,
 				_rrule,
 				_dates,
@@ -1003,7 +1002,7 @@ iwc.util.QuickParser=new (function(){
 			fn(o, dict, dt);
 		});
 
-		console.log("iwc.util.QuickParser::parse: ", o);
+		console.log("QuickParser::parse: ", o);
 		return o;
 	};
 })();
