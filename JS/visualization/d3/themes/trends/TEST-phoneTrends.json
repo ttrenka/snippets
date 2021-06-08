@@ -1,0 +1,42 @@
+{
+	"phoneTrends": {
+		"darkTheme": {
+			"upperArea": [
+				{
+					"label": "stopColor1",
+					"color": "#1f7b94",
+					"opacity": 0
+				},
+				{
+					"label": "stopColor2",
+					"color": "#1f7b94",
+					"opacity": 0.8
+				}
+			],
+			"upperLine": {
+				"strokeFill": "#034561",
+				"strokeOpacity": 1,
+				"shadowFill": "#032331",
+				"shadowOpacity": 1
+				},
+			"lowerArea": [
+				{
+					"label": "stopColor1",
+					"color": "#1f7b94",
+					"opacity": 0.8
+				},
+				{
+					"label": "stopColor2",
+					"color": "#1f7b94",
+					"opacity": 0
+				}
+			],
+			"lowerLine":{
+				"strokeFill": "#034561",
+				"strokeOpacity": 1,
+				"shadowFill": "#032331",
+				"shadowOpacity": 1
+			}
+		}
+	}
+}
