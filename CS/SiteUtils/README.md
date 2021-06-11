@@ -17,6 +17,10 @@ output (in this case, almost always JSON). Using this system I was able to captu
 a particular SQL query took, how long it took to serialize, how long the full endpoint took, any errors that
 might have been thrown, etc.
 
+Clip taken from an onboarding training session showing the Console class in practice:
+
+https://user-images.githubusercontent.com/76838/121724787-fb590400-caad-11eb-872d-3a33ed3c02e3.mov
+
 ## Utilities
 Originally written to simplify database access tremendously--and translate the resulting dataset into a format
 easily serializable to a variety of formats to be returned over the wire--it also has an "in-progress" set of
