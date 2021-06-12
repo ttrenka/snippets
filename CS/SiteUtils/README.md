@@ -21,6 +21,34 @@ Clip taken from an onboarding training session showing the Console class in prac
 
 https://user-images.githubusercontent.com/76838/121724787-fb590400-caad-11eb-872d-3a33ed3c02e3.mov
 
+The example code used to generate these messages:
+```
+//	Intro code for an endpoint
+List<Dictionary<string, object>> messages = new List<Dictionary<string, object>>();
+
+//	Code goes here to execute (typically setting up and executing an SQL Query
+
+//	Set up the return object
+Dictionary<String, Object> ret = new Dictionary<String, Object>();
+
+
+//	Create and add the messages to the Response output
+SiteUtils.Console.Log("Page execution: " + (DateTime.Now - _start), messages);
+SiteUtils.Console.Log("Record count: " + rs.Count, messages);
+SiteUtils.Console.Log(p, messages);
+SiteUtils.Console.Log(sql, messages);
+
+if(user.hasConsole){
+	ret.Add("console", SiteUtils.Console.Flush("srv/cards/touchpointsTacticsChart.aspx", messages));
+}
+
+//	Encode as JSON and send it out
+String json = Utilities.EncodeJson(ret);
+Response.Write(json);
+```
+
+This sets up a property on the returned JSON object called `console`, which the client-side code will interpret.
+
 ## Utilities
 Originally written to simplify database access tremendously--and translate the resulting dataset into a format
 easily serializable to a variety of formats to be returned over the wire--it also has an "in-progress" set of
