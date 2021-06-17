@@ -50,26 +50,26 @@ Response.Write(json);
 This sets up a property on the returned JSON object called `console`, which the client-side code will interpret thusly:
 
 ```javascript
-	//	render any console object
-	function render(data){
-		if(data && data.console){
-			var messages = data.console;
-			for(var i=0, l=messages.length; i<l; i++){
-				var item = messages[i];
-				console[item.type](item.message);
-			}
+//	render any console object
+function render(data){
+	if(data && data.console){
+		var messages = data.console;
+		for(var i=0, l=messages.length; i<l; i++){
+			var item = messages[i];
+			console[item.type](item.message);
 		}
 	}
+}
 
-	window.consolify = render;	//	this is a very simplified version; the included file has error-checking and handling.
+window.consolify = render;	//	this is a very simplified version; the included file has error-checking and handling.
 
-	//	---------------------
-	//	Usage
-	//	---------------------
-	function onDataLoad(data){
-		if(data && data.console) consolify(data);
-		//	do your normal data handling
-	}
+//	---------------------
+//	Usage
+//	---------------------
+function onDataLoad(data){
+	if(data && data.console) consolify(data);
+	//	do your normal data handling
+}
 ```
 
 ## Utilities
