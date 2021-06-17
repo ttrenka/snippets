@@ -22,7 +22,7 @@ Clip taken from an onboarding training session showing the Console class in prac
 https://user-images.githubusercontent.com/76838/121724787-fb590400-caad-11eb-872d-3a33ed3c02e3.mov
 
 The example code used to generate these messages:
-```
+```csharp
 //	Intro code for an endpoint
 List<Dictionary<string, object>> messages = new List<Dictionary<string, object>>();
 
