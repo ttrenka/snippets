@@ -46,7 +46,7 @@ required by all cards in the system.
 The application in question also had a method of switching "themes" on-the-fly, which included various branding
 needs. Only two themes were included by default, as shown in the video below:
 
-(insert video here)
+https://user-images.githubusercontent.com/76838/122682126-46b19780-d1bd-11eb-8be7-84f8cf34017c.mov
 
 ## The DateRangePicker (`/cmps/DateRangePicker.js`)
 One of two major "global" components in the application, this is a full-featured component that allows a user
@@ -59,7 +59,7 @@ The following video clip shows the DateRangePicker in conjunction with a Bookmar
 in this repository, as it was very application-specific) to show both the functionality of the picker itself, as well as 
 how that affected parts of the system.
 
-(insert video here)
+https://user-images.githubusercontent.com/76838/122682092-21bd2480-d1bd-11eb-9320-402a35bc336c.mov
 
 ## The Downloader, Search and View Options menu components
 Each card in the application, depending on its purpose, could include any number of "menu items" within its title bar.
