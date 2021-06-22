@@ -46,7 +46,7 @@ required by all cards in the system.
 The application in question also had a method of switching "themes" on-the-fly, which included various branding
 needs. Only two themes were included by default, as shown in the video below:
 
-(video to be uploaded)
+https://www.dropbox.com/s/1kr4dhy9ykr3ig9/AiTrk-05.mp4?dl=0
 
 ## The DateRangePicker (`/cmps/DateRangePicker.js`)
 One of two major "global" components in the application, this is a full-featured component that allows a user
