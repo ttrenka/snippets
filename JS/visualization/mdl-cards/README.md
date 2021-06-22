@@ -59,7 +59,7 @@ The following video clip shows the DateRangePicker in conjunction with a Bookmar
 in this repository, as it was very application-specific) to show both the functionality of the picker itself, as well as 
 how that affected parts of the system.
 
-https://user-images.githubusercontent.com/76838/122682092-21bd2480-d1bd-11eb-9320-402a35bc336c.mov
+https://user-images.githubusercontent.com/76838/122966994-9aec8100-d34f-11eb-9fb7-16604abc2451.mp4
 
 ## The Downloader, Search and View Options menu components
 Each card in the application, depending on its purpose, could include any number of "menu items" within its title bar.
