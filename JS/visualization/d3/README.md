@@ -1,15 +1,29 @@
-# Various Standalone microlibraries
-This space will be used to house various utilities I've written over the years using JScript for Classic ASP.
-Each snippet will be explained below.
+# d3.js Visualizations
+Various examples of custom visualizations live in this project.
 
-## WinLESS
-Version 3 of the application I was in charge of at my previous job used LESS as a CSS Proprocessor; one of the
-application requirements was to be able to build customized stylesheets on-the-fly, including a logo, to rebrand
-the application. As part of the requirements, we didn't want to have to recompile all of the possible branded
-stylesheets every time we made a change.
+_NOTE: All visualizations here are based on D3.js v3.x; this was a project limitation and will be ported to v.6.x
+in the future._
 
-It turned out someone had written a handy Windows utility called WinLESS that not only watched the file system for
-potential changes in `.less` files, but included a compiler written entirely for Windows Script Host. So I adapted
-that compile script to run under IIS, complete with a base64-encoded logo image (adjusted for size) any time a 
-change in branded styling was made.
+## Donut
 
+
+## Dual Axis LineArea
+
+
+## Google Map
+
+
+## Sankey
+
+
+## Sparkline
+
+
+## Streamgraph
+
+
+## Trends
+This visualization is an implementation of a Bollinger band-type of visualization, with a baseline (the raw data), a
+moving average, and high/low Bollinger bands. Originally written as a way of detecting some kind of anomaly (in the
+original, a number of phone calls out of an expected range based on historical data), it is useful for stock charts
+and other situations where some kind of standard deviation analysis is needed.
