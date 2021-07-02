@@ -29,7 +29,7 @@ latitude/longitude coordinates, even if they came from different advertisements.
 Along with other date-based visualizations, a Line/Area chart was created in which one could compare specific metrics/KPIs along
 a "normalized" pair of Y axes if desired.
 
-(insert video reference here)
+https://www.dropbox.com/s/1kr4dhy9ykr3ig9/AiTrk-05.mp4?dl=0
 
 ## Sparkline
 A common method of displaying (usually time-based) data, a Sparkline implimentation was made based on Edward Tufte's famous
