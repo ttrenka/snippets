@@ -23,7 +23,7 @@ metrics; because of this, we took advantage of the Google JS Map API (along with
 of where specific ads were getting responses. This included a way of clustering many data points reported to be at the same
 latitude/longitude coordinates, even if they came from different advertisements.
 
-(insert screenshots here)
+![GoogleMapExample](https://user-images.githubusercontent.com/76838/124311647-ad2aa400-db33-11eb-9175-1f0e8e2f21e3.png)
 
 ## Dual Axis LineArea
 Along with other date-based visualizations, a Line/Area chart was created in which one could compare specific metrics/KPIs along
