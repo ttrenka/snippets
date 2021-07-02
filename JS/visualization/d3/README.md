@@ -13,7 +13,9 @@ web site optimizations.
 A much better explanation can be found here: https://en.wikipedia.org/wiki/Sankey_diagram but here are a couple of
 examples of this particular implementation.
 
-(insert screenshots here)
+<img width="1919" alt="aitrk4 4k light 10-01 Touchpoints Dashboard Tactics Touch Paths" src="https://user-images.githubusercontent.com/76838/124311339-31305c00-db33-11eb-9f57-b40234ca4eae.png">
+
+![aitrk4 4k dark 10-01b Touchpoints Dashboard Tactics Touch Paths all out](https://user-images.githubusercontent.com/76838/124311367-3d1c1e00-db33-11eb-9d25-c0738588b17c.png)
 
 ## Google Map
 Part of the goal for this visualization was to be able to plot geographical locations about various internet ad and website
